@@ -10,7 +10,7 @@
   "scripts": {
     "start:backend": "cd backend && npm run dev",
     "start:frontend": "cd frontend && npm run dev",
-    "build:backend": "cd backend && tsc",
+    "build:backend": "cd backend && (test -f tsconfig.json || npx tsc --init) && tsc",
     "build:frontend": "cd frontend && npm run build",
     "build": "npm run build:backend && npm run build:frontend",
     "clean": "rimraf node_modules && cd frontend && rimraf node_modules && cd ../backend && rimraf node_modules"
