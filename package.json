@@ -1,21 +1,25 @@
 {
-  "devDependencies": {
-    "@types/cors": "^2.8.17",
-    "@types/express": "^5.0.0",
-    "@types/node": "^22.13.9"
-  },
   "name": "performance-meter",
   "version": "1.0.0",
   "description": "Performance Meter applicatie voor Tothepoint Company",
+  "private": true,
+  "workspaces": [
+    "frontend",
+    "backend"
+  ],
   "scripts": {
-    "install-all": "npm install && cd frontend && npm install && cd ../backend && npm install",
-    "start": "cd backend && npm run dev",
-    "start-frontend": "cd frontend && npm run dev",
+    "postinstall": "npm run install:all",
+    "install:all": "cd backend && npm install && cd ../frontend && npm install",
+    "start:backend": "cd backend && npm run dev",
+    "start:frontend": "cd frontend && npm run dev",
     "build:backend": "cd backend && npm run build",
     "build:frontend": "cd frontend && npm run build",
     "build": "npm run build:backend && npm run build:frontend",
-    "test": "cd backend && npm test && cd ../frontend && npm test"
+    "clean": "rimraf node_modules && cd frontend && rimraf node_modules && cd ../backend && rimraf node_modules"
   },
   "author": "Tothepoint Company",
-  "license": "ISC"
+  "license": "ISC",
+  "devDependencies": {
+    "rimraf": "^5.0.5"
+  }
 }
