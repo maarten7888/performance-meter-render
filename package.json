@@ -10,7 +10,7 @@
   "scripts": {
     "start:backend": "cd backend && npm run dev",
     "start:frontend": "cd frontend && npm run dev",
-    "build:backend": "cd backend && pwd && ls -la && echo '{\"compilerOptions\":{\"target\":\"ES2020\",\"module\":\"CommonJS\",\"outDir\":\"./dist\",\"rootDir\":\"./src\",\"strict\":true,\"esModuleInterop\":true,\"skipLibCheck\":true,\"forceConsistentCasingInFileNames\":true,\"moduleResolution\":\"node\",\"resolveJsonModule\":true,\"declaration\":false,\"sourceMap\":true,\"typeRoots\":[\"./node_modules/@types\"]},\"include\":[\"src/**/*.ts\"],\"exclude\":[\"node_modules\",\"dist\"]}' > tsconfig.json && ls -la src/ && tsc",
+    "build:backend": "cd backend && echo '{\"compilerOptions\":{\"target\":\"ES2020\",\"module\":\"CommonJS\",\"outDir\":\"./dist\",\"rootDir\":\".\",\"strict\":true,\"esModuleInterop\":true,\"skipLibCheck\":true,\"forceConsistentCasingInFileNames\":true,\"moduleResolution\":\"node\",\"resolveJsonModule\":true,\"declaration\":false,\"sourceMap\":true,\"typeRoots\":[\"./node_modules/@types\"]},\"include\":[\"**/*.ts\"],\"exclude\":[\"node_modules\",\"dist\"]}' > tsconfig.json && tsc",
     "build:frontend": "cd frontend && npm run build",
     "build": "npm run build:backend && npm run build:frontend",
     "clean": "rimraf node_modules && cd frontend && rimraf node_modules && cd ../backend && rimraf node_modules"
