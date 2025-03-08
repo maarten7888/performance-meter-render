@@ -10,10 +10,10 @@
   "scripts": {
     "install-all": "npm install && cd frontend && npm install && cd ../backend && npm install",
     "start": "cd backend && npm run dev",
-    "start-frontend": "cd frontend && npm start",
-    "build-backend": "cd backend && npm run build",
-    "build-frontend": "cd frontend && npm run build",
-    "build": "npm run build-backend && npm run build-frontend",
+    "start-frontend": "cd frontend && npm run dev",
+    "build:backend": "cd backend && npm run build",
+    "build:frontend": "cd frontend && npm run build",
+    "build": "npm run build:backend && npm run build:frontend",
     "test": "cd backend && npm test && cd ../frontend && npm test"
   },
   "author": "Tothepoint Company",
