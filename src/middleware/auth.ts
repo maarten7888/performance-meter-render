@@ -16,7 +16,7 @@ export const authenticateToken = (req: AuthRequest, res: Response, next: NextFun
   const token = authHeader && authHeader.split(' ')[1];
 
   if (!token) {
-    return res.status(401).json({ message: 'Authentication token required' });
+    return res.status(401).json({ message: 'Geen toegangstoken gevonden' });
   }
 
   try {
@@ -27,6 +27,6 @@ export const authenticateToken = (req: AuthRequest, res: Response, next: NextFun
     req.user = user;
     next();
   } catch (error) {
-    return res.status(403).json({ message: 'Invalid token' });
+    return res.status(403).json({ message: 'Ongeldig toegangstoken' });
   }
 }; 
