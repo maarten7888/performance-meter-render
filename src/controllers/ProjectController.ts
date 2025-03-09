@@ -86,7 +86,7 @@ export class ProjectController {
         [id]
       );
 
-      if ((timeEntries[0] as any).count > 0) {
+      if ((timeEntries as any[])[0]?.count > 0) {
         return res.status(400).json({ 
           message: 'Cannot delete project with existing time entries' 
         });

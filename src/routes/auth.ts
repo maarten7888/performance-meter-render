@@ -88,8 +88,8 @@ router.post('/login', async (req: Request, res: Response) => {
     // Genereer JWT token
     const token = jwt.sign(
       { userId: user.id, email: user.email },
-      JWT_SECRET as jwt.Secret,
-      { expiresIn: JWT_EXPIRES_IN }
+      process.env.JWT_SECRET || 'fallback_secret',
+      { expiresIn: '24h' }
     );
 
     const response: LoginResponse = {

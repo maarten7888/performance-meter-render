@@ -15,7 +15,7 @@ export class TimeEntryController {
         [project_id, user_id]
       );
 
-      if (!projects.length) {
+      if (!(projects as any[]).length) {
         return res.status(404).json({ message: 'Project not found or unauthorized' });
       }
 
@@ -71,7 +71,7 @@ export class TimeEntryController {
         AND YEAR(te.entry_date) = ?
       `, [user_id, year]);
 
-      const totalAmount = result[0]?.total_amount || 0;
+      const totalAmount = (result as any[])[0]?.total_amount || 0;
 
       // Get all active projects for calculating target
       const [activeProjects] = await pool.query(`
@@ -82,7 +82,7 @@ export class TimeEntryController {
       `, [user_id]);
 
       // Calculate yearly target based on active projects
-      const yearlyTarget = activeProjects.reduce((sum: number, project: any) => 
+      const yearlyTarget = (activeProjects as any[]).reduce((sum: number, project: any) => 
         sum + (project.hourly_rate * 1800), 0); // 1800 = target hours per year
 
       res.json({
