@@ -1,4 +1,4 @@
-import { Router } from 'express';
+import { Router, Request, Response } from 'express';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import pool from '../lib/db';
@@ -8,7 +8,7 @@ import { authenticateToken, AuthRequest } from '../middleware/auth';
 
 const router = Router();
 
-router.post('/register', async (req, res) => {
+router.post('/register', async (req: Request, res: Response) => {
   try {
     const { email, password, name }: RegisterRequest = req.body;
 
@@ -58,7 +58,7 @@ router.post('/register', async (req, res) => {
   }
 });
 
-router.post('/login', async (req, res) => {
+router.post('/login', async (req: Request, res: Response) => {
   try {
     const { email, password }: LoginRequest = req.body;
 
@@ -88,7 +88,7 @@ router.post('/login', async (req, res) => {
     // Genereer JWT token
     const token = jwt.sign(
       { userId: user.id, email: user.email },
-      JWT_SECRET,
+      JWT_SECRET as jwt.Secret,
       { expiresIn: JWT_EXPIRES_IN }
     );
 
