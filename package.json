@@ -1,23 +1,35 @@
 {
   "name": "performance-meter",
   "version": "1.0.0",
-  "description": "Performance Meter applicatie voor Tothepoint Company",
-  "private": true,
-  "workspaces": [
-    "frontend",
-    "backend"
-  ],
+  "description": "Performance Meter voor To The Point Company",
+  "main": "dist/server.js",
   "scripts": {
-    "start:backend": "cd backend && npm run dev",
-    "start:frontend": "cd frontend && npm run dev",
-    "build:backend": "cd backend && echo '{\"compilerOptions\":{\"target\":\"ES2020\",\"module\":\"CommonJS\",\"outDir\":\"./dist\",\"rootDir\":\".\",\"strict\":true,\"esModuleInterop\":true,\"skipLibCheck\":true,\"forceConsistentCasingInFileNames\":true,\"moduleResolution\":\"node\",\"resolveJsonModule\":true,\"declaration\":false,\"sourceMap\":true,\"typeRoots\":[\"./node_modules/@types\"]},\"include\":[\"**/*.ts\"],\"exclude\":[\"node_modules\",\"dist\"]}' > tsconfig.json && tsc",
-    "build:frontend": "cd frontend && npm run build",
-    "build": "npm run build:backend && npm run build:frontend",
-    "clean": "rimraf node_modules && cd frontend && rimraf node_modules && cd ../backend && rimraf node_modules"
+    "start": "node dist/server.js",
+    "dev": "nodemon src/server.ts",
+    "build": "tsc",
+    "test": "jest",
+    "migrate": "ts-node src/config/runMigrations.ts"
   },
-  "author": "Tothepoint Company",
-  "license": "ISC",
+  "dependencies": {
+    "express": "^4.18.2",
+    "mysql2": "^3.6.5",
+    "dotenv": "^16.3.1",
+    "bcryptjs": "^2.4.3",
+    "jsonwebtoken": "^9.0.2",
+    "cors": "^2.8.5",
+    "helmet": "^7.1.0"
+  },
   "devDependencies": {
-    "rimraf": "^5.0.5"
+    "@types/express": "^4.17.21",
+    "@types/node": "^20.10.4",
+    "@types/bcryptjs": "^2.4.6",
+    "@types/jsonwebtoken": "^9.0.5",
+    "@types/cors": "^2.8.17",
+    "typescript": "^5.3.3",
+    "ts-node": "^10.9.1",
+    "nodemon": "^3.0.2",
+    "@types/jest": "^29.5.11",
+    "jest": "^29.7.0",
+    "ts-jest": "^29.1.1"
   }
-}
+} 

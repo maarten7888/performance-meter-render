@@ -1,0 +1,23 @@
+services:
+  - type: web
+    name: performance-meter
+    env: node
+    buildCommand: npm install && npm run build
+    startCommand: npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: DB_HOST
+        value: mysql.tothepointcompany.nl
+      - key: DB_USER
+        value: tothepoi_pm
+      - key: DB_PASSWORD
+        value: 63@1Cy9dz
+      - key: DB_NAME
+        value: tothepoi_performance_db
+      - key: DB_PORT
+        value: 3306
+      - key: JWT_SECRET
+        value: ttpc_performance_meter_secret_key
+      - key: PORT
+        value: 3000 
