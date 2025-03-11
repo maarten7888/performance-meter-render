@@ -1,8 +1,8 @@
-import axios from 'axios';
+import axios, { AxiosInstance, InternalAxiosRequestConfig, AxiosError } from 'axios';
 
-const API_URL = 'https://performance-meter-render-6i1b.onrender.com';
+const API_URL = 'https://performance-meter-backend.onrender.com';
 
-const api = axios.create({
+const api: AxiosInstance = axios.create({
     baseURL: API_URL,
     headers: {
         'Content-Type': 'application/json',
@@ -11,14 +11,14 @@ const api = axios.create({
 
 // Add request interceptor for JWT token
 api.interceptors.request.use(
-    (config) => {
+    (config: InternalAxiosRequestConfig) => {
         const token = localStorage.getItem('token');
         if (token) {
             config.headers.Authorization = `Bearer ${token}`;
         }
         return config;
     },
-    (error) => {
+    (error: AxiosError) => {
         return Promise.reject(error);
     }
 );

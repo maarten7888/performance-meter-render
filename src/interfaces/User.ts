@@ -4,6 +4,6 @@ export interface User {
     firstName?: string;
     lastName?: string;
     yearTarget: number;
-    createdAt: Date;
-    updatedAt: Date;
+    createdAt: string;
+    updatedAt: string;
 } 

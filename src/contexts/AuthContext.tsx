@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { User } from '../interfaces/User';
 import api from '../services/api';
+import { AxiosResponse } from 'axios';
 
 interface AuthContextType {
     user: User | null;
@@ -10,32 +11,44 @@ interface AuthContextType {
     register: (email: string, password: string, yearTarget: number) => Promise<void>;
 }
 
+interface AuthProviderProps {
+    children: ReactNode;
+}
+
+interface UserResponse {
+    user: User;
+}
+
+interface AuthResponse extends UserResponse {
+    token: string;
+}
+
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
+export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     const [user, setUser] = useState<User | null>(null);
     const [loading, setLoading] = useState(true);
 
-    useEffect(() => {
+    const checkAuth = () => {
         const token = localStorage.getItem('token');
         if (token) {
-            api.get('/api/users/me')
-                .then(response => {
-                    setUser(response.data);
+            api.get<UserResponse>('/api/users/me')
+                .then((response: AxiosResponse<UserResponse>) => {
+                    setUser(response.data.user);
                 })
                 .catch(() => {
                     localStorage.removeItem('token');
-                })
-                .finally(() => {
-                    setLoading(false);
+                    setUser(null);
                 });
-        } else {
-            setLoading(false);
         }
+    };
+
+    useEffect(() => {
+        checkAuth();
     }, []);
 
     const login = async (email: string, password: string) => {
-        const response = await api.post('/api/auth/login', { email, password });
+        const response = await api.post<AuthResponse>('/api/auth/login', { email, password });
         localStorage.setItem('token', response.data.token);
         setUser(response.data.user);
     };
@@ -46,7 +59,11 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     };
 
     const register = async (email: string, password: string, yearTarget: number) => {
-        const response = await api.post('/api/auth/register', { email, password, yearTarget });
+        const response = await api.post<AuthResponse>('/api/auth/register', {
+            email,
+            password,
+            yearTarget
+        });
         localStorage.setItem('token', response.data.token);
         setUser(response.data.user);
     };
