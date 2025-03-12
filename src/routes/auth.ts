@@ -52,14 +52,17 @@ router.post('/register', async (req: Request, res: Response) => {
     };
 
     res.status(201).json(response);
-  } catch (error) {
+  } catch (error: any) {
     console.error('Registratie error details:', {
       error,
-      message: error.message,
-      stack: error.stack,
-      sqlMessage: error.sqlMessage
+      message: error?.message || 'Onbekende fout',
+      stack: error?.stack,
+      sqlMessage: error?.sqlMessage
     });
-    res.status(500).json({ error: 'Er is een fout opgetreden bij het registreren', details: error.message });
+    res.status(500).json({ 
+      error: 'Er is een fout opgetreden bij het registreren', 
+      details: error?.message || 'Onbekende fout' 
+    });
   }
 });
 
@@ -107,7 +110,7 @@ router.post('/login', async (req: Request, res: Response) => {
     };
 
     res.json(response);
-  } catch (error) {
+  } catch (error: any) {
     console.error('Login error:', error);
     res.status(500).json({ error: 'Er is een fout opgetreden bij het inloggen' });
   }
