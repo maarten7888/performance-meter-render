@@ -32,13 +32,13 @@ router.post('/register', async (req: Request, res: Response) => {
 
     // Voeg gebruiker toe
     const [result] = await pool.query(
-      'INSERT INTO users (email, password, firstName, lastName, createdAt, updatedAt) VALUES (?, ?, ?, ?, NOW(), NOW())',
-      [email, hashedPassword, name.split(' ')[0], name.split(' ').slice(1).join(' ')]
+      'INSERT INTO users (email, password, name, createdAt, updatedAt) VALUES (?, ?, ?, NOW(), NOW())',
+      [email, hashedPassword, name]
     );
 
     // Haal de nieuwe gebruiker op
     const [newUser] = await pool.query(
-      'SELECT id, email, firstName, lastName, createdAt FROM users WHERE id = ?',
+      'SELECT id, email, name, createdAt FROM users WHERE id = ?',
       [(result as any).insertId]
     );
 
@@ -47,14 +47,19 @@ router.post('/register', async (req: Request, res: Response) => {
     const response: RegisterResponse = {
       id: user.id.toString(),
       email: user.email,
-      name: `${user.firstName} ${user.lastName}`,
+      name: user.name,
       createdAt: user.createdAt
     };
 
     res.status(201).json(response);
   } catch (error) {
-    console.error('Registratie error:', error);
-    res.status(500).json({ error: 'Er is een fout opgetreden bij het registreren' });
+    console.error('Registratie error details:', {
+      error,
+      message: error.message,
+      stack: error.stack,
+      sqlMessage: error.sqlMessage
+    });
+    res.status(500).json({ error: 'Er is een fout opgetreden bij het registreren', details: error.message });
   }
 });
 
@@ -69,7 +74,7 @@ router.post('/login', async (req: Request, res: Response) => {
 
     // Zoek gebruiker
     const [users] = await pool.query(
-      'SELECT id, email, password, firstName, lastName FROM users WHERE email = ?',
+      'SELECT id, email, password, name FROM users WHERE email = ?',
       [email]
     );
 
@@ -97,7 +102,7 @@ router.post('/login', async (req: Request, res: Response) => {
       user: {
         id: user.id.toString(),
         email: user.email,
-        name: `${user.firstName} ${user.lastName}`
+        name: user.name
       }
     };
 
