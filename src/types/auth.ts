@@ -8,7 +8,6 @@ export interface RegisterResponse {
   id: string;
   email: string;
   name: string;
-  createdAt: Date;
 }
 
 export interface LoginRequest {

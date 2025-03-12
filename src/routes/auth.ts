@@ -32,13 +32,13 @@ router.post('/register', async (req: Request, res: Response) => {
 
     // Voeg gebruiker toe
     const [result] = await pool.query(
-      'INSERT INTO users (email, password, name, createdAt, updatedAt) VALUES (?, ?, ?, NOW(), NOW())',
+      'INSERT INTO users (email, password, name) VALUES (?, ?, ?)',
       [email, hashedPassword, name]
     );
 
     // Haal de nieuwe gebruiker op
     const [newUser] = await pool.query(
-      'SELECT id, email, name, createdAt FROM users WHERE id = ?',
+      'SELECT id, email, name FROM users WHERE id = ?',
       [(result as any).insertId]
     );
 
@@ -47,8 +47,7 @@ router.post('/register', async (req: Request, res: Response) => {
     const response: RegisterResponse = {
       id: user.id.toString(),
       email: user.email,
-      name: user.name,
-      createdAt: user.createdAt
+      name: user.name
     };
 
     res.status(201).json(response);
