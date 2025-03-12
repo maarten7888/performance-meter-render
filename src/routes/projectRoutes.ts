@@ -24,9 +24,14 @@ interface AuthRequest extends Request {
 // Ophalen van alle projecten voor de ingelogde gebruiker
 router.get('/', authenticateToken, async (req: AuthRequest, res) => {
     try {
+        if (!req.user?.id) {
+            console.error('User ID is missing in request');
+            return res.status(401).json({ error: 'Niet geautoriseerd' });
+        }
+
         const [projects] = await db.query<ProjectRow[]>(
             'SELECT id, name, hourly_rate, start_date, end_date FROM projects WHERE user_id = ?',
-            [req.user?.id]
+            [req.user.id]
         );
 
         res.json(projects.map(project => ({
@@ -45,6 +50,12 @@ router.get('/', authenticateToken, async (req: AuthRequest, res) => {
 // Aanmaken van een nieuw project
 router.post('/', authenticateToken, async (req: AuthRequest, res) => {
     try {
+        // Controleer eerst of er een gebruiker ID is
+        if (!req.user?.id) {
+            console.error('User ID is missing in request');
+            return res.status(401).json({ error: 'Niet geautoriseerd' });
+        }
+
         const { name, hourlyRate, startDate, endDate } = req.body;
 
         if (!name || hourlyRate === undefined || !startDate || !endDate) {
@@ -52,11 +63,17 @@ router.post('/', authenticateToken, async (req: AuthRequest, res) => {
         }
 
         // Log de ontvangen data voor debugging
-        console.log('Received project data:', { name, hourlyRate, startDate, endDate });
+        console.log('Received project data:', { 
+            name, 
+            hourlyRate, 
+            startDate, 
+            endDate,
+            userId: req.user.id 
+        });
 
         const [result] = await db.query(
             'INSERT INTO projects (name, hourly_rate, start_date, end_date, user_id) VALUES (?, ?, ?, ?, ?)',
-            [name, hourlyRate, new Date(startDate), new Date(endDate), req.user?.id]
+            [name, hourlyRate, new Date(startDate), new Date(endDate), req.user.id]
         );
 
         const [newProject] = await db.query<ProjectRow[]>(
