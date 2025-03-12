@@ -20,11 +20,17 @@ export const authenticateToken = (req: AuthRequest, res: Response, next: NextFun
   }
 
   try {
-    const user = jwt.verify(token, process.env.JWT_SECRET || 'fallback_secret') as {
-      id: number;
+    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'fallback_secret') as {
+      userId: number;
       email: string;
     };
-    req.user = user;
+    
+    // Map userId to id for consistency
+    req.user = {
+      id: decoded.userId,
+      email: decoded.email
+    };
+    
     next();
   } catch (error) {
     return res.status(403).json({ message: 'Ongeldig toegangstoken' });
