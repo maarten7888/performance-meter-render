@@ -18,8 +18,9 @@ import { styled } from '@mui/material/styles';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
-import axios from 'axios';
 import { nl } from 'date-fns/locale';
+import api from '../services/api';
+import { useAuth } from '../contexts/AuthContext';
 
 const StyledPaper = styled(Paper)(({ theme }) => ({
   marginTop: theme.spacing(4),
@@ -47,6 +48,7 @@ interface TimeEntry {
 }
 
 const TimeRegistration = () => {
+  const { user, isAuthenticated } = useAuth();
   const [projects, setProjects] = useState<Project[]>([]);
   const [timeEntries, setTimeEntries] = useState<TimeEntry[]>([]);
   const [newEntry, setNewEntry] = useState({
@@ -56,56 +58,83 @@ const TimeRegistration = () => {
   });
 
   useEffect(() => {
-    fetchProjects();
-    fetchTimeEntries();
-  }, []);
+    // Debug logging voor auth state
+    console.log('=== Auth State in TimeRegistration ===');
+    console.log('Is authenticated:', isAuthenticated);
+    console.log('Current user:', user);
+    console.log('Token in localStorage:', localStorage.getItem('token'));
+    console.log('API default headers:', api.defaults.headers);
+    console.log('================');
+
+    if (isAuthenticated) {
+      fetchProjects();
+      fetchTimeEntries();
+    }
+  }, [isAuthenticated, user]);
 
   const fetchProjects = async () => {
     try {
-      const token = localStorage.getItem('token');
-      const response = await axios.get<Project[]>('https://performance-meter-render-6i1b.onrender.com/api/projects', {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      setProjects(response.data as Project[]);
+      console.log('=== Fetching Projects ===');
+      const response = await api.get<Project[]>('/api/projects');
+      console.log('Projects response:', response.data);
+      setProjects(response.data);
     } catch (error) {
       console.error('Error fetching projects:', error);
+      if (error.response) {
+        console.error('Error response:', error.response.data);
+        console.error('Error status:', error.response.status);
+        console.error('Error headers:', error.response.headers);
+      }
     }
   };
 
   const fetchTimeEntries = async () => {
     try {
-      const token = localStorage.getItem('token');
-      const response = await axios.get<TimeEntry[]>('https://performance-meter-render-6i1b.onrender.com/api/time-entries', {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      setTimeEntries(response.data as TimeEntry[]);
+      console.log('=== Fetching Time Entries ===');
+      const response = await api.get<TimeEntry[]>('/api/time-entries');
+      console.log('Time entries response:', response.data);
+      setTimeEntries(response.data);
     } catch (error) {
       console.error('Error fetching time entries:', error);
+      if (error.response) {
+        console.error('Error response:', error.response.data);
+        console.error('Error status:', error.response.status);
+        console.error('Error headers:', error.response.headers);
+      }
     }
   };
 
   const handleSubmit = async () => {
     try {
-      const token = localStorage.getItem('token');
-      await axios.post(
-        'https://performance-meter-render-6i1b.onrender.com/api/time-entries',
-        {
-          projectId: parseInt(newEntry.projectId),
-          date: newEntry.date?.toISOString(),
-          hours: parseFloat(newEntry.hours),
-        },
-        {
-          headers: { Authorization: `Bearer ${token}` }
-        }
-      );
+      console.log('=== Creating Time Entry ===');
+      console.log('Entry data:', {
+        projectId: parseInt(newEntry.projectId),
+        date: newEntry.date?.toISOString(),
+        hours: parseFloat(newEntry.hours),
+      });
+
+      const response = await api.post('/api/time-entries', {
+        projectId: parseInt(newEntry.projectId),
+        date: newEntry.date?.toISOString(),
+        hours: parseFloat(newEntry.hours),
+      });
+
+      console.log('Create response:', response.data);
+      
       setNewEntry({
         projectId: '',
         date: null,
         hours: '',
       });
+      
       fetchTimeEntries();
     } catch (error) {
       console.error('Error creating time entry:', error);
+      if (error.response) {
+        console.error('Error response:', error.response.data);
+        console.error('Error status:', error.response.status);
+        console.error('Error headers:', error.response.headers);
+      }
     }
   };
 
