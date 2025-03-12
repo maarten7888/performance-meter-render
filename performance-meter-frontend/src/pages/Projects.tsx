@@ -45,7 +45,7 @@ interface Project {
 }
 
 const Projects = () => {
-  const { user } = useAuth();
+  const { user, isAuthenticated } = useAuth();
   const [projects, setProjects] = useState<Project[]>([]);
   const [open, setOpen] = useState(false);
   const [newProject, setNewProject] = useState({
@@ -56,38 +56,64 @@ const Projects = () => {
   });
 
   useEffect(() => {
-    fetchProjects();
-  }, []);
+    // Debug logging voor auth state
+    console.log('=== Auth State ===');
+    console.log('Is authenticated:', isAuthenticated);
+    console.log('Current user:', user);
+    console.log('Token in localStorage:', localStorage.getItem('token'));
+    console.log('API default headers:', api.defaults.headers);
+    console.log('================');
+
+    if (isAuthenticated) {
+      fetchProjects();
+    }
+  }, [isAuthenticated, user]);
 
   const fetchProjects = async () => {
     try {
-      // Debug logging
-      const token = localStorage.getItem('token');
-      console.log('Current token:', token);
-      console.log('Current user:', user);
-      console.log('API headers:', api.defaults.headers);
+      // Debug logging voor request
+      console.log('=== Fetching Projects ===');
+      console.log('Making request with headers:', {
+        Authorization: `Bearer ${localStorage.getItem('token')}`,
+        'Content-Type': 'application/json'
+      });
 
       const response = await api.get<Project[]>('/api/projects');
+      console.log('Projects response:', response.data);
       setProjects(response.data);
     } catch (error) {
       console.error('Error fetching projects:', error);
+      if (error.response) {
+        console.error('Error response:', error.response.data);
+        console.error('Error status:', error.response.status);
+        console.error('Error headers:', error.response.headers);
+      }
     }
   };
 
   const handleSubmit = async () => {
     try {
-      // Debug logging
-      const token = localStorage.getItem('token');
-      console.log('Current token (submit):', token);
-      console.log('Current user (submit):', user);
-      console.log('API headers (submit):', api.defaults.headers);
-
-      await api.post('/api/projects', {
+      // Debug logging voor submit
+      console.log('=== Creating Project ===');
+      console.log('Project data:', {
         name: newProject.name,
         hourlyRate: parseFloat(newProject.hourlyRate),
         startDate: newProject.startDate?.toISOString(),
         endDate: newProject.endDate?.toISOString(),
       });
+      console.log('Using headers:', {
+        Authorization: `Bearer ${localStorage.getItem('token')}`,
+        'Content-Type': 'application/json'
+      });
+
+      const response = await api.post('/api/projects', {
+        name: newProject.name,
+        hourlyRate: parseFloat(newProject.hourlyRate),
+        startDate: newProject.startDate?.toISOString(),
+        endDate: newProject.endDate?.toISOString(),
+      });
+
+      console.log('Create response:', response.data);
       
       setOpen(false);
       setNewProject({
@@ -99,6 +125,11 @@ const Projects = () => {
       fetchProjects();
     } catch (error) {
       console.error('Error creating project:', error);
+      if (error.response) {
+        console.error('Error response:', error.response.data);
+        console.error('Error status:', error.response.status);
+        console.error('Error headers:', error.response.headers);
+      }
     }
   };
 
