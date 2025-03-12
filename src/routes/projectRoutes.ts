@@ -1,4 +1,4 @@
-import express from 'express';
+import express, { Request } from 'express';
 import { db } from '../database/db';
 import { authenticateToken } from '../middleware/auth';
 import { RowDataPacket } from 'mysql2';
@@ -14,8 +14,15 @@ interface ProjectRow extends RowDataPacket {
     user_id: number;
 }
 
+// Extend Request type to include user
+interface AuthRequest extends Request {
+    user?: {
+        id: number;
+    };
+}
+
 // Ophalen van alle projecten voor de ingelogde gebruiker
-router.get('/', authenticateToken, async (req, res) => {
+router.get('/', authenticateToken, async (req: AuthRequest, res) => {
     try {
         const [projects] = await db.query<ProjectRow[]>(
             'SELECT id, name, hourly_rate, start_date, end_date FROM projects WHERE user_id = ?',
@@ -36,7 +43,7 @@ router.get('/', authenticateToken, async (req, res) => {
 });
 
 // Aanmaken van een nieuw project
-router.post('/', authenticateToken, async (req, res) => {
+router.post('/', authenticateToken, async (req: AuthRequest, res) => {
     try {
         const { name, hourlyRate, startDate, endDate } = req.body;
 
@@ -66,7 +73,8 @@ router.post('/', authenticateToken, async (req, res) => {
         });
     } catch (error) {
         console.error('Project creation error:', error);
-        res.status(500).json({ error: `Er is een fout opgetreden bij het aanmaken van het project: ${error.message}` });
+        const errorMessage = error instanceof Error ? error.message : 'Onbekende fout';
+        res.status(500).json({ error: `Er is een fout opgetreden bij het aanmaken van het project: ${errorMessage}` });
     }
 });
 
