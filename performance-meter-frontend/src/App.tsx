@@ -1,36 +1,34 @@
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import { ThemeProvider, CssBaseline } from '@mui/material';
-import { createTheme } from '@mui/material/styles';
+import { BrowserRouter } from 'react-router-dom';
+import { ThemeProvider, createTheme } from '@mui/material/styles';
+import CssBaseline from '@mui/material/CssBaseline';
 import { AuthProvider } from './contexts/AuthContext';
-import LoginPage from './pages/LoginPage';
-import RegisterPage from './pages/RegisterPage';
+import AppRoutes from './routes';
 
 const theme = createTheme({
-  typography: {
-    fontFamily: 'Montserrat, Arial',
-  },
   palette: {
+    mode: 'dark',
     primary: {
       main: '#0c2d5a',
     },
     background: {
       default: '#0c2d5a',
+      paper: 'rgba(255, 255, 255, 0.1)',
     },
     text: {
       primary: '#ffffff',
+      secondary: '#ffffff',
     },
   },
   components: {
-    MuiCssBaseline: {
+    MuiLink: {
       styleOverrides: {
-        body: {
-          backgroundColor: '#0c2d5a',
+        root: {
           color: '#ffffff',
-          margin: 0,
-          padding: 0,
-          minHeight: '100vh',
-          width: '100%',
+          textDecoration: 'none',
+          '&:hover': {
+            textDecoration: 'underline',
+          },
         },
       },
     },
@@ -41,15 +39,11 @@ function App() {
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
-      <AuthProvider>
-        <Router>
-          <Routes>
-            <Route path="/login" element={<LoginPage />} />
-            <Route path="/register" element={<RegisterPage />} />
-            <Route path="/" element={<Navigate to="/login" replace />} />
-          </Routes>
-        </Router>
-      </AuthProvider>
+      <BrowserRouter>
+        <AuthProvider>
+          <AppRoutes />
+        </AuthProvider>
+      </BrowserRouter>
     </ThemeProvider>
   );
 }

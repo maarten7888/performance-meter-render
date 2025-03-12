@@ -5,9 +5,10 @@ import api from '../services/api';
 interface AuthContextType {
     user: User | null;
     loading: boolean;
+    isAuthenticated: boolean;
     login: (email: string, password: string) => Promise<void>;
     logout: () => void;
-    register: (email: string, password: string, yearTarget: number) => Promise<void>;
+    register: (email: string, password: string, name: string) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -60,9 +61,9 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         setUser(null);
     };
 
-    const register = async (email: string, password: string, yearTarget: number) => {
+    const register = async (email: string, password: string, name: string) => {
         try {
-            const response = await api.post('/api/auth/register', { email, password, yearTarget });
+            const response = await api.post('/api/auth/register', { email, password, name });
             const { token, user: userData } = response.data;
             localStorage.setItem('token', token);
             api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
@@ -79,7 +80,14 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     };
 
     return (
-        <AuthContext.Provider value={{ user, loading, login, logout, register }}>
+        <AuthContext.Provider value={{ 
+            user, 
+            loading, 
+            isAuthenticated: !!user,
+            login, 
+            logout, 
+            register 
+        }}>
             {children}
         </AuthContext.Provider>
     );
