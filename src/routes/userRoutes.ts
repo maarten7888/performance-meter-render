@@ -1,6 +1,14 @@
 import express from 'express';
 import { UserController } from '../controllers/UserController';
 import { authenticateToken } from '../middleware/auth';
+import pool from '../lib/db';
+import { RowDataPacket } from 'mysql2';
+
+interface UserRow extends RowDataPacket {
+  id: number;
+  email: string;
+  name: string;
+}
 
 const router = express.Router();
 const userController = new UserController();
@@ -8,6 +16,31 @@ const userController = new UserController();
 // Auth routes
 router.post('/register', userController.register);
 router.post('/login', userController.login);
+
+// Gebruiker ophalen
+router.get('/me', authenticateToken, async (req: any, res) => {
+  try {
+    const [users] = await pool.query<UserRow[]>(
+      'SELECT id, email, name FROM users WHERE id = ?',
+      [req.user.userId]
+    );
+
+    const user = users.length > 0 ? users[0] : null;
+
+    if (!user) {
+      return res.status(404).json({ error: 'Gebruiker niet gevonden' });
+    }
+
+    res.json({
+      id: user.id.toString(),
+      email: user.email,
+      name: user.name
+    });
+  } catch (error) {
+    console.error('Error fetching user:', error);
+    res.status(500).json({ error: 'Er is een fout opgetreden bij het ophalen van de gebruiker' });
+  }
+});
 
 router.get('/monthly-data', authenticateToken, async (req, res) => {
   try {
