@@ -8,6 +8,7 @@ import { createConnection } from 'mysql2/promise';
 import userRoutes from './routes/userRoutes';
 import projectRoutes from './routes/projectRoutes';
 import timeEntryRoutes from './routes/timeEntryRoutes';
+import authRoutes from './routes/auth';
 
 // Load environment variables
 dotenv.config();
@@ -16,7 +17,7 @@ const app = express();
 
 // Middleware
 app.use(cors({
-  origin: 'https://pm.tothepointcompany.nl',
+  origin: ['https://pm.tothepointcompany.nl', 'http://localhost:3000'],
   credentials: true
 }));
 app.use(helmet());
@@ -44,6 +45,7 @@ const initializeDatabase = async () => {
 };
 
 // Routes
+app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/projects', projectRoutes);
 app.use('/api/time-entries', timeEntryRoutes);
