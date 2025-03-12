@@ -23,6 +23,7 @@ import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import { nl } from 'date-fns/locale';
 import api from '../services/api';
+import { useAuth } from '../contexts/AuthContext';
 
 const StyledPaper = styled(Paper)(({ theme }) => ({
   marginTop: theme.spacing(4),
@@ -44,6 +45,7 @@ interface Project {
 }
 
 const Projects = () => {
+  const { user } = useAuth();
   const [projects, setProjects] = useState<Project[]>([]);
   const [open, setOpen] = useState(false);
   const [newProject, setNewProject] = useState({
@@ -59,6 +61,12 @@ const Projects = () => {
 
   const fetchProjects = async () => {
     try {
+      // Debug logging
+      const token = localStorage.getItem('token');
+      console.log('Current token:', token);
+      console.log('Current user:', user);
+      console.log('API headers:', api.defaults.headers);
+
       const response = await api.get<Project[]>('/api/projects');
       setProjects(response.data);
     } catch (error) {
@@ -68,6 +76,12 @@ const Projects = () => {
 
   const handleSubmit = async () => {
     try {
+      // Debug logging
+      const token = localStorage.getItem('token');
+      console.log('Current token (submit):', token);
+      console.log('Current user (submit):', user);
+      console.log('API headers (submit):', api.defaults.headers);
+
       await api.post('/api/projects', {
         name: newProject.name,
         hourlyRate: parseFloat(newProject.hourlyRate),
