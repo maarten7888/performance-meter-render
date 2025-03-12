@@ -21,8 +21,8 @@ import { styled } from '@mui/material/styles';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
-import axios from 'axios';
 import { nl } from 'date-fns/locale';
+import api from '../services/api';
 
 const StyledPaper = styled(Paper)(({ theme }) => ({
   marginTop: theme.spacing(4),
@@ -59,10 +59,7 @@ const Projects = () => {
 
   const fetchProjects = async () => {
     try {
-      const token = localStorage.getItem('token');
-      const response = await axios.get<Project[]>('https://performance-meter-render-6i1b.onrender.com/api/projects', {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      const response = await api.get<Project[]>('/api/projects');
       setProjects(response.data);
     } catch (error) {
       console.error('Error fetching projects:', error);
@@ -71,19 +68,13 @@ const Projects = () => {
 
   const handleSubmit = async () => {
     try {
-      const token = localStorage.getItem('token');
-      await axios.post(
-        'https://performance-meter-render-6i1b.onrender.com/api/projects',
-        {
-          name: newProject.name,
-          hourlyRate: parseFloat(newProject.hourlyRate),
-          startDate: newProject.startDate?.toISOString(),
-          endDate: newProject.endDate?.toISOString(),
-        },
-        {
-          headers: { Authorization: `Bearer ${token}` }
-        }
-      );
+      await api.post('/api/projects', {
+        name: newProject.name,
+        hourlyRate: parseFloat(newProject.hourlyRate),
+        startDate: newProject.startDate?.toISOString(),
+        endDate: newProject.endDate?.toISOString(),
+      });
+      
       setOpen(false);
       setNewProject({
         name: '',
