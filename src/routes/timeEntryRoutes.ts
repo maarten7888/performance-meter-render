@@ -8,6 +8,7 @@ const timeEntryController = new TimeEntryController();
 // Time entry routes (all protected)
 router.use(authenticateToken);
 
+router.get('/', timeEntryController.getAll);
 router.post('/', timeEntryController.create);
 router.get('/monthly-report', timeEntryController.getMonthlyReport);
 router.get('/yearly-target', timeEntryController.getYearlyTarget);

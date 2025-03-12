@@ -108,14 +108,14 @@ const TimeRegistration = () => {
     try {
       console.log('=== Creating Time Entry ===');
       console.log('Entry data:', {
-        projectId: parseInt(newEntry.projectId),
-        date: newEntry.date?.toISOString(),
+        project_id: parseInt(newEntry.projectId),
+        entry_date: newEntry.date?.toISOString().split('T')[0],
         hours: parseFloat(newEntry.hours),
       });
 
       const response = await api.post('/api/time-entries', {
-        projectId: parseInt(newEntry.projectId),
-        date: newEntry.date?.toISOString(),
+        project_id: parseInt(newEntry.projectId),
+        entry_date: newEntry.date?.toISOString().split('T')[0],
         hours: parseFloat(newEntry.hours),
       });
 

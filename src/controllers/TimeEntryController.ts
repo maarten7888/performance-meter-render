@@ -138,4 +138,29 @@ export class TimeEntryController {
       res.status(500).json({ message: 'Error deleting time entry' });
     }
   }
+
+  async getAll(req: AuthRequest, res: Response) {
+    try {
+      const user_id = req.user?.id;
+
+      const [entries] = await pool.query(
+        `SELECT 
+          t.id,
+          t.project_id as projectId,
+          p.name as projectName,
+          t.hours,
+          t.entry_date as date
+        FROM time_entries t
+        JOIN projects p ON t.project_id = p.id
+        WHERE t.user_id = ?
+        ORDER BY t.entry_date DESC`,
+        [user_id]
+      );
+
+      res.json(entries);
+    } catch (error) {
+      console.error('Error fetching time entries:', error);
+      res.status(500).json({ message: 'Error fetching time entries' });
+    }
+  }
 } 
