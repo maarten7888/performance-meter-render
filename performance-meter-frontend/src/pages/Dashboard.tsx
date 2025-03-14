@@ -48,8 +48,8 @@ const Dashboard: React.FC = () => {
         setError(null);
 
         const [monthlyResponse, yearlyResponse] = await Promise.all([
-          api.get('/time-entries/monthly-report'),
-          api.get('/time-entries/yearly-target')
+          api.get<MonthlyData[]>('/time-entries/monthly-report'),
+          api.get<YearlyTarget>('/time-entries/yearly-target')
         ]);
 
         setMonthlyData(monthlyResponse.data);
