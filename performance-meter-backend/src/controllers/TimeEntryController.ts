@@ -1,6 +1,6 @@
-import { Request, Response } from 'express';
+import { Response } from 'express';
 import { pool } from '../config/database';
-import { AuthRequest } from '../middleware/auth';
+import { AuthRequest } from '../types/express';
 
 export class TimeEntryController {
   async getTimeEntries(req: AuthRequest, res: Response) {
