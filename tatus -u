@@ -1,0 +1,44 @@
+5810d6e - maarten7888, 2 days ago : feat: add time entries endpoints and fix field names
+c291444 - maarten7888, 2 days ago : feat: improve TimeRegistration component with api instance and debug logging
+50e87f9 - maarten7888, 2 days ago : fix: map userId from token to id in auth middleware
+264199d - maarten7888, 2 days ago : feat: improve auth debugging in Projects component
+90a8e1d - maarten7888, 2 days ago : feat: add debug logging for auth in Projects component
+735d8aa - maarten7888, 2 days ago : fix: use configured api instance for projects
+e4ee9ca - maarten7888, 2 days ago : fix: add user ID validation and improve error handling
+df5c4fd - maarten7888, 2 days ago : fix: add TypeScript types for request user and error handling
+4410a32 - maarten7888, 2 days ago : fix: project creation issues with hourly rate and dates
+f8d4285 - maarten7888, 2 days ago : Werkende versie met login, navigatie en authenticatie
+a6ccb8e - maarten7888, 2 days ago : Werkende versie met login, navigatie en authenticatie
+db8fe6c - maarten7888, 2 days ago : feat: add /me endpoint to fetch user details
+9aa3902 - maarten7888, 2 days ago : feat: add monthly-data and year-target endpoints
+caa1e96 - maarten7888, 2 days ago : fix: remove createdAt and updatedAt fields from user registration
+2743e14 - maarten7888, 2 days ago : fix: improve error handling with proper TypeScript types
+8fb01be - maarten7888, 2 days ago : fix: update user registration to use single name field instead of firstName/lastName
+c90c144 - maarten7888, 2 days ago : Add auth routes to Express app
+4f710f4 - maarten7888, 3 days ago : fix: exclude frontend files from backend build
+6422a27 - maarten7888, 3 days ago : fix: use backend typescript config for build
+10e9427 - maarten7888, 3 days ago : feat: add separate backend typescript config
+8949cf8 - maarten7888, 3 days ago : fix: update tsconfig for backend build
+8a988d4 - maarten7888, 3 days ago : fix: update bcryptjs import and dependencies
+dfa349f - maarten7888, 3 days ago : chore: add frontend dependencies
+1e6f406 - maarten7888, 3 days ago : fix: simplify CORS configuration
+4e62f84 - maarten7888, 3 days ago : feat: configure CORS to allow requests from pm.tothepointcompany.nl
+6b76b8c - maarten7888, 3 days ago : feat: configure CORS to allow requests from pm.tothepointcompany.nl
+a88abd3 - maarten7888, 5 days ago : Add Cursor snapshot document
+6580e9c - maarten7888, 5 days ago : Fix TypeScript fouten en voeg bcryptjs toe
+b457e38 - maarten7888, 5 days ago : Merge en update configuratie bestanden
+6b990dc - maarten7888, 5 days ago : Initial commit with backend setup
+d568d14 - maarten7888, 5 days ago : Add backend structure with auth routes and database configuration
+911f113 - maarten7888, 5 days ago : Add backend structure with auth routes and database configuration
+67b3ab2 - maarten7888, 6 days ago : fix: pas tsconfig aan om alle TypeScript bestanden te vinden
+ad6e2ca - maarten7888, 6 days ago : chore: voeg directory listing toe aan build script voor debugging
+60e3acf - maarten7888, 6 days ago : fix: voeg volledig geconfigureerd tsconfig.json toe aan build script
+52e11fa - maarten7888, 6 days ago : fix: voeg automatische tsconfig.json generatie toe aan build script
+4ed6535 - maarten7888, 6 days ago : fix: voorkom oneindige loop in build scripts
+895039a - maarten7888, 6 days ago : fix: verwijder postinstall scripts om oneindige loop te voorkomen
+ced30b8 - maarten7888, 6 days ago : Fix build configuration and prevent infinite loops
+176ea34 - maarten7888, 6 days ago : Fix build scripts and use npx for vite commands
+8b5fe44 - maarten7888, 6 days ago : Fix build script to prevent infinite loop
+bc1f611 - maarten7888, 6 days ago : Update backend submodule
+fa115b3 - maarten7888, 6 days ago : Simplify user authentication and fix JWT configuration
+522a880 - maarten7888, 6 days ago : Fix API baseURL configuration

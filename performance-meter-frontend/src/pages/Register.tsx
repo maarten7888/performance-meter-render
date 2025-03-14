@@ -1,15 +1,24 @@
 import React, { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
-import { Box, Container, TextField, Button, Typography, Paper } from '@mui/material';
+import { useNavigate } from 'react-router-dom';
+import {
+  Container,
+  Paper,
+  Typography,
+  TextField,
+  Button,
+  Box,
+  Link,
+} from '@mui/material';
 import { styled } from '@mui/material/styles';
 import { useAuth } from '../contexts/AuthContext';
 
 const StyledPaper = styled(Paper)(({ theme }) => ({
   marginTop: theme.spacing(8),
-  padding: theme.spacing(4),
+  padding: theme.spacing(3),
   display: 'flex',
   flexDirection: 'column',
   alignItems: 'center',
+  backgroundColor: 'rgba(255, 255, 255, 0.1)',
 }));
 
 const StyledForm = styled('form')(({ theme }) => ({
@@ -18,49 +27,52 @@ const StyledForm = styled('form')(({ theme }) => ({
 }));
 
 const Register = () => {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
-  const [name, setName] = useState('');
-  const [error, setError] = useState('');
-  const { register } = useAuth();
   const navigate = useNavigate();
+  const { register } = useAuth();
+  const [formData, setFormData] = useState({
+    email: '',
+    password: '',
+    name: '',
+  });
+  const [error, setError] = useState('');
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError('');
-
-    if (password !== confirmPassword) {
-      setError('Wachtwoorden komen niet overeen');
-      return;
-    }
-
     try {
-      await register(email, password, name);
-      navigate('/login');
+      await register(formData.email, formData.password, formData.name);
+      navigate('/dashboard' as string);
     } catch (err: any) {
-      setError(err.message || 'Registratie mislukt. Probeer het opnieuw.');
+      setError(err.message || 'Er is een fout opgetreden bij het registreren');
     }
   };
 
   return (
     <Container component="main" maxWidth="xs">
-      <StyledPaper elevation={6}>
-        <Typography component="h1" variant="h5">
+      <StyledPaper>
+        <Typography component="h1" variant="h5" color="white">
           Registreren
         </Typography>
-        <StyledForm onSubmit={handleSubmit}>
+        <StyledForm onSubmit={handleSubmit} noValidate>
           <TextField
             variant="outlined"
             margin="normal"
             required
             fullWidth
             id="name"
-            label="Volledige naam"
+            label="Naam"
             name="name"
             autoComplete="name"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
+            autoFocus
+            value={formData.name}
+            onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+            sx={{
+              '& .MuiInputBase-input': { color: 'white' },
+              '& .MuiInputLabel-root': { color: 'white' },
+              '& .MuiOutlinedInput-root': {
+                '& fieldset': { borderColor: 'white' },
+                '&:hover fieldset': { borderColor: 'white' },
+              },
+            }}
           />
           <TextField
             variant="outlined"
@@ -71,8 +83,16 @@ const Register = () => {
             label="E-mailadres"
             name="email"
             autoComplete="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
+            value={formData.email}
+            onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+            sx={{
+              '& .MuiInputBase-input': { color: 'white' },
+              '& .MuiInputLabel-root': { color: 'white' },
+              '& .MuiOutlinedInput-root': {
+                '& fieldset': { borderColor: 'white' },
+                '&:hover fieldset': { borderColor: 'white' },
+              },
+            }}
           />
           <TextField
             variant="outlined"
@@ -83,23 +103,20 @@ const Register = () => {
             label="Wachtwoord"
             type="password"
             id="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-          />
-          <TextField
-            variant="outlined"
-            margin="normal"
-            required
-            fullWidth
-            name="confirmPassword"
-            label="Bevestig wachtwoord"
-            type="password"
-            id="confirmPassword"
-            value={confirmPassword}
-            onChange={(e) => setConfirmPassword(e.target.value)}
+            autoComplete="new-password"
+            value={formData.password}
+            onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+            sx={{
+              '& .MuiInputBase-input': { color: 'white' },
+              '& .MuiInputLabel-root': { color: 'white' },
+              '& .MuiOutlinedInput-root': {
+                '& fieldset': { borderColor: 'white' },
+                '&:hover fieldset': { borderColor: 'white' },
+              },
+            }}
           />
           {error && (
-            <Typography color="error" align="center">
+            <Typography color="error" align="center" sx={{ mt: 2 }}>
               {error}
             </Typography>
           )}
@@ -107,13 +124,19 @@ const Register = () => {
             type="submit"
             fullWidth
             variant="contained"
-            sx={{ mt: 3, mb: 2 }}
+            sx={{
+              mt: 3,
+              mb: 2,
+              bgcolor: 'white',
+              color: '#0c2d5a',
+              '&:hover': { bgcolor: '#f5f5f5' },
+            }}
           >
             Registreren
           </Button>
           <Box textAlign="center">
-            <Link to="/login">
-              Al een account? Log in
+            <Link href="/login" variant="body2" sx={{ color: 'white' }}>
+              Al een account? Log hier in
             </Link>
           </Box>
         </StyledForm>

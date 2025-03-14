@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Container, Paper, Typography, Box } from '@mui/material';
+import { Container, Paper, Typography, Box, CircularProgress } from '@mui/material';
 import { styled } from '@mui/material/styles';
 import { Line } from 'react-chartjs-2';
 import {
@@ -12,7 +12,7 @@ import {
   Tooltip,
   Legend,
 } from 'chart.js';
-import axios from 'axios';
+import api from '../services/api';
 import { useAuth } from '../contexts/AuthContext';
 
 ChartJS.register(
@@ -32,37 +32,60 @@ const StyledPaper = styled(Paper)(({ theme }) => ({
 }));
 
 interface MonthlyData {
-  month: string;
-  hours: number;
-  revenue: number;
+  month: number;
+  total_hours: number;
+  total_amount: number;
 }
 
-interface YearTargetResponse {
-  target: number;
+interface YearlyTargetResponse {
+  currentAmount: number;
+  yearlyTarget: number;
+  progressPercentage: number;
+}
+
+interface TotalHoursResponse {
+  totalHours: number;
 }
 
 const Dashboard = () => {
   const [monthlyData, setMonthlyData] = useState<MonthlyData[]>([]);
-  const [yearTarget, setYearTarget] = useState(0);
+  const [yearlyTarget, setYearlyTarget] = useState<YearlyTargetResponse | null>(null);
+  const [totalHours, setTotalHours] = useState<number>(0);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const { user } = useAuth();
 
   useEffect(() => {
     const fetchData = async () => {
       try {
+        setLoading(true);
+        setError(null);
+        console.log('Fetching dashboard data...');
+        
         const token = localStorage.getItem('token');
-        const [monthlyResponse, targetResponse] = await Promise.all([
-          axios.get<MonthlyData[]>('https://performance-meter-render-6i1b.onrender.com/api/monthly-data', {
-            headers: { Authorization: `Bearer ${token}` }
-          }),
-          axios.get<YearTargetResponse>('https://performance-meter-render-6i1b.onrender.com/api/year-target', {
-            headers: { Authorization: `Bearer ${token}` }
-          })
+        console.log('Token present:', !!token);
+        
+        const [monthlyResponse, targetResponse, hoursResponse] = await Promise.all([
+          api.get<MonthlyData[]>('/api/time-entries/monthly-report'),
+          api.get<YearlyTargetResponse>('/api/time-entries/yearly-target'),
+          api.get<TotalHoursResponse>('/api/time-entries/total-hours')
         ]);
 
-        setMonthlyData(monthlyResponse.data as MonthlyData[]);
-        setYearTarget((targetResponse.data as YearTargetResponse).target);
-      } catch (error) {
+        console.log('Monthly data response:', monthlyResponse);
+        console.log('Yearly target response:', targetResponse);
+        console.log('Total hours response:', hoursResponse);
+
+        setMonthlyData(monthlyResponse.data);
+        setYearlyTarget(targetResponse.data);
+        setTotalHours(hoursResponse.data.totalHours);
+      } catch (error: any) {
         console.error('Error fetching dashboard data:', error);
+        console.error('Error response:', error.response?.data);
+        console.error('Error status:', error.response?.status);
+        console.error('Error headers:', error.response?.headers);
+        setError('Er is een fout opgetreden bij het ophalen van de dashboard data. Probeer het later opnieuw.');
+      } finally {
+        setLoading(false);
       }
     };
 
@@ -76,13 +99,16 @@ const Dashboard = () => {
     datasets: [
       {
         label: 'Gefactureerd bedrag',
-        data: monthlyData.map(d => d.revenue),
+        data: months.map((_, index) => {
+          const monthData = monthlyData.find(d => d.month === index + 1);
+          return monthData ? monthData.total_amount : 0;
+        }),
         borderColor: 'rgb(75, 192, 192)',
         tension: 0.1,
       },
       {
         label: 'Target',
-        data: months.map(() => yearTarget / 12),
+        data: months.map(() => yearlyTarget ? yearlyTarget.yearlyTarget / 12 : 0),
         borderColor: 'rgb(255, 99, 132)',
         borderDash: [5, 5],
       },
@@ -125,9 +151,7 @@ const Dashboard = () => {
     },
   };
 
-  const totalRevenue = monthlyData.reduce((sum, month) => sum + month.revenue, 0);
-  const totalHours = monthlyData.reduce((sum, month) => sum + month.hours, 0);
-  const progressPercentage = (totalRevenue / yearTarget) * 100;
+  const totalRevenue = monthlyData.reduce((sum, month) => sum + month.total_amount, 0);
 
   return (
     <Container>
@@ -141,24 +165,40 @@ const Dashboard = () => {
       </Box>
 
       <StyledPaper>
-        <Box mb={4}>
-          <Typography variant="h6" color="white" gutterBottom>
-            Jaar Overzicht
-          </Typography>
-          <Typography color="white">
-            Totaal gefactureerd: €{totalRevenue.toLocaleString()}
-          </Typography>
-          <Typography color="white">
-            Jaardoel: €{yearTarget.toLocaleString()} ({progressPercentage.toFixed(1)}% behaald)
-          </Typography>
-          <Typography color="white">
-            Totaal aantal uren: {totalHours}
-          </Typography>
-        </Box>
-        
-        <Box height={400}>
-          <Line data={chartData} options={chartOptions} />
-        </Box>
+        {loading ? (
+          <Box display="flex" justifyContent="center" alignItems="center" minHeight={400}>
+            <CircularProgress />
+          </Box>
+        ) : error ? (
+          <Box display="flex" justifyContent="center" alignItems="center" minHeight={400}>
+            <Typography color="error">{error}</Typography>
+          </Box>
+        ) : (
+          <>
+            <Box mb={4}>
+              <Typography variant="h6" color="white" gutterBottom>
+                Jaar Overzicht
+              </Typography>
+              <Typography color="white">
+                Totaal gefactureerd: €{totalRevenue.toLocaleString()}
+              </Typography>
+              {yearlyTarget && (
+                <>
+                  <Typography color="white">
+                    Jaardoel: €{yearlyTarget.yearlyTarget.toLocaleString()} ({yearlyTarget.progressPercentage.toFixed(1)}% behaald)
+                  </Typography>
+                </>
+              )}
+              <Typography color="white">
+                Totaal aantal uren: {totalHours.toFixed(2)}
+              </Typography>
+            </Box>
+            
+            <Box height={400}>
+              <Line data={chartData} options={chartOptions} />
+            </Box>
+          </>
+        )}
       </StyledPaper>
     </Container>
   );

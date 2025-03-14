@@ -50,7 +50,7 @@ const Login = () => {
     try {
       await login(email, password);
       console.log('Login succesvol, navigeren naar dashboard...');
-      navigate('/dashboard');
+      navigate('/dashboard' as string);
     } catch (err: any) {
       console.error('Login error:', err);
       setError(err.message || 'Er is een fout opgetreden bij het inloggen');

@@ -1,6 +1,16 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { User } from '../interfaces/User';
 import api from '../services/api';
+
+interface User {
+    id: number;
+    email: string;
+    name: string;
+}
+
+interface AuthResponse {
+    token: string;
+    user: User;
+}
 
 interface AuthContextType {
     user: User | null;
@@ -18,28 +28,32 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        const token = localStorage.getItem('token');
-        if (token) {
-            api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-            api.get('/api/users/me')
-                .then(response => {
-                    setUser(response.data);
-                })
-                .catch(() => {
+        const initAuth = async () => {
+            const token = localStorage.getItem('token');
+            if (token) {
+                try {
+                    api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+                    const response = await api.get<{ user: User }>('/api/users/me');
+                    setUser(response.data.user);
+                } catch (error) {
+                    console.error('Auth initialization error:', error);
                     localStorage.removeItem('token');
                     delete api.defaults.headers.common['Authorization'];
-                })
-                .finally(() => {
+                    setUser(null);
+                } finally {
                     setLoading(false);
-                });
-        } else {
-            setLoading(false);
-        }
+                }
+            } else {
+                setLoading(false);
+            }
+        };
+
+        initAuth();
     }, []);
 
     const login = async (email: string, password: string) => {
         try {
-            const response = await api.post('/api/auth/login', { email, password });
+            const response = await api.post<AuthResponse>('/api/auth/login', { email, password });
             const { token, user: userData } = response.data;
             localStorage.setItem('token', token);
             api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
@@ -63,15 +77,15 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
     const register = async (email: string, password: string, name: string) => {
         try {
-            const response = await api.post('/api/auth/register', { email, password, name });
+            const response = await api.post<AuthResponse>('/api/auth/register', { email, password, name });
             const { token, user: userData } = response.data;
             localStorage.setItem('token', token);
             api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
             setUser(userData);
         } catch (error: any) {
             if (error.response) {
-                if (error.response.status === 409) {
-                    throw new Error('Dit e-mailadres is al in gebruik');
+                if (error.response.status === 400) {
+                    throw new Error(error.response.data.message || 'Email is al in gebruik');
                 }
                 throw new Error(error.response.data.message || 'Er is een fout opgetreden bij het registreren');
             }

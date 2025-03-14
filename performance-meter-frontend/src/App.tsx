@@ -1,49 +1,92 @@
 import React from 'react';
-import { BrowserRouter } from 'react-router-dom';
-import { ThemeProvider, createTheme } from '@mui/material/styles';
-import CssBaseline from '@mui/material/CssBaseline';
-import { AuthProvider } from './contexts/AuthContext';
-import AppRoutes from './routes';
+import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
+import { ThemeProvider, CssBaseline } from '@mui/material';
+import { createTheme } from '@mui/material/styles';
+import { AuthProvider, useAuth } from './contexts/AuthContext';
+import LoginPage from './pages/LoginPage';
+import TimeRegistration from './pages/TimeRegistration';
+import Projects from './pages/Projects';
+import Dashboard from './pages/Dashboard';
+import Layout from './components/Layout';
 
+// Import Montserrat font
+import '@fontsource/montserrat';
+
+// Create theme with Montserrat font
 const theme = createTheme({
+  typography: {
+    fontFamily: 'Montserrat, Arial',
+  },
   palette: {
-    mode: 'dark',
     primary: {
       main: '#0c2d5a',
     },
     background: {
       default: '#0c2d5a',
-      paper: 'rgba(255, 255, 255, 0.1)',
     },
     text: {
       primary: '#ffffff',
-      secondary: '#ffffff',
     },
   },
   components: {
-    MuiLink: {
+    MuiCssBaseline: {
       styleOverrides: {
-        root: {
+        body: {
+          backgroundColor: '#0c2d5a',
           color: '#ffffff',
-          textDecoration: 'none',
-          '&:hover': {
-            textDecoration: 'underline',
-          },
         },
       },
     },
   },
 });
 
+const PrivateRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const { isAuthenticated, loading } = useAuth();
+  const location = useLocation();
+
+  if (loading) {
+    return null; // Of een loading spinner
+  }
+
+  if (!isAuthenticated) {
+    return <Navigate to="/login" state={{ from: location }} replace />;
+  }
+
+  return <>{children}</>;
+};
+
 function App() {
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
-      <BrowserRouter>
-        <AuthProvider>
-          <AppRoutes />
-        </AuthProvider>
-      </BrowserRouter>
+      <AuthProvider>
+        <Router>
+          <Routes>
+            <Route path="/login" element={<LoginPage />} />
+            <Route path="/" element={
+              <PrivateRoute>
+                <Layout>
+                  <Dashboard />
+                </Layout>
+              </PrivateRoute>
+            } />
+            <Route path="/time-registration" element={
+              <PrivateRoute>
+                <Layout>
+                  <TimeRegistration />
+                </Layout>
+              </PrivateRoute>
+            } />
+            <Route path="/projects" element={
+              <PrivateRoute>
+                <Layout>
+                  <Projects />
+                </Layout>
+              </PrivateRoute>
+            } />
+          </Routes>
+        </Router>
+      </AuthProvider>
     </ThemeProvider>
   );
 }

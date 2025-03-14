@@ -15,9 +15,7 @@ import {
   TableRow,
 } from '@mui/material';
 import { styled } from '@mui/material/styles';
-import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
-import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
-import { DatePicker } from '@mui/x-date-pickers/DatePicker';
+import { startOfWeek, endOfWeek, format } from 'date-fns';
 import { nl } from 'date-fns/locale';
 import api from '../services/api';
 import { useAuth } from '../contexts/AuthContext';
@@ -47,18 +45,26 @@ interface TimeEntry {
   hours: number;
 }
 
+interface NewTimeEntry {
+  projectId: string;
+  weekNumber: string;
+  date: Date | null;
+  hours: string;
+}
+
 const TimeRegistration = () => {
   const { user, isAuthenticated } = useAuth();
   const [projects, setProjects] = useState<Project[]>([]);
   const [timeEntries, setTimeEntries] = useState<TimeEntry[]>([]);
-  const [newEntry, setNewEntry] = useState({
+  const [newEntry, setNewEntry] = useState<NewTimeEntry>({
     projectId: '',
-    date: null as Date | null,
+    weekNumber: '',
+    date: null,
     hours: '',
   });
+  const [weekDates, setWeekDates] = useState<{ start: string; end: string } | null>(null);
 
   useEffect(() => {
-    // Debug logging voor auth state
     console.log('=== Auth State in TimeRegistration ===');
     console.log('Is authenticated:', isAuthenticated);
     console.log('Current user:', user);
@@ -104,6 +110,28 @@ const TimeRegistration = () => {
     }
   };
 
+  const handleWeekChange = (weekNumber: string) => {
+    const currentYear = new Date().getFullYear();
+    const firstDayOfYear = new Date(currentYear, 0, 1);
+    const daysToAdd = (parseInt(weekNumber) - 1) * 7;
+    const date = new Date(firstDayOfYear);
+    date.setDate(date.getDate() + daysToAdd);
+    
+    const startDate = startOfWeek(date, { locale: nl });
+    const endDate = endOfWeek(date, { locale: nl });
+    
+    setWeekDates({
+      start: format(startDate, 'd MMMM yyyy', { locale: nl }),
+      end: format(endDate, 'd MMMM yyyy', { locale: nl })
+    });
+    
+    setNewEntry({
+      ...newEntry,
+      weekNumber,
+      date: startDate
+    });
+  };
+
   const handleSubmit = async () => {
     try {
       console.log('=== Creating Time Entry ===');
@@ -123,10 +151,12 @@ const TimeRegistration = () => {
       
       setNewEntry({
         projectId: '',
+        weekNumber: '',
         date: null,
         hours: '',
       });
       
+      setWeekDates(null);
       fetchTimeEntries();
     } catch (error) {
       console.error('Error creating time entry:', error);
@@ -168,18 +198,32 @@ const TimeRegistration = () => {
               }}
             >
               {projects.map((project) => (
-                <MenuItem key={project.id} value={project.id}>
+                <MenuItem key={project.id} value={String(project.id)}>
                   {project.name}
                 </MenuItem>
               ))}
             </TextField>
-            <LocalizationProvider dateAdapter={AdapterDateFns} adapterLocale={nl}>
-              <DatePicker
-                label="Datum"
-                value={newEntry.date}
-                onChange={(date) => setNewEntry({ ...newEntry, date })}
-              />
-            </LocalizationProvider>
+            <TextField
+              label="Weeknummer"
+              type="number"
+              value={newEntry.weekNumber}
+              onChange={(e) => handleWeekChange(e.target.value)}
+              inputProps={{ min: 1, max: 53 }}
+              sx={{
+                width: 120,
+                '& .MuiInputBase-input': { color: 'white' },
+                '& .MuiInputLabel-root': { color: 'white' },
+                '& .MuiOutlinedInput-root': {
+                  '& fieldset': { borderColor: 'white' },
+                  '&:hover fieldset': { borderColor: 'white' },
+                },
+              }}
+            />
+            {weekDates && (
+              <Typography variant="body2" color="white" sx={{ minWidth: 200 }}>
+                {weekDates.start} - {weekDates.end}
+              </Typography>
+            )}
             <TextField
               label="Aantal uren"
               type="number"
@@ -213,20 +257,26 @@ const TimeRegistration = () => {
             <TableHead>
               <TableRow>
                 <StyledTableCell>Project</StyledTableCell>
+                <StyledTableCell>Weeknummer</StyledTableCell>
                 <StyledTableCell>Datum</StyledTableCell>
                 <StyledTableCell>Uren</StyledTableCell>
               </TableRow>
             </TableHead>
             <TableBody>
-              {timeEntries.map((entry) => (
-                <TableRow key={entry.id}>
-                  <StyledTableCell>{entry.projectName}</StyledTableCell>
-                  <StyledTableCell>
-                    {new Date(entry.date).toLocaleDateString('nl-NL')}
-                  </StyledTableCell>
-                  <StyledTableCell>{entry.hours}</StyledTableCell>
-                </TableRow>
-              ))}
+              {timeEntries.map((entry) => {
+                const entryDate = new Date(entry.date);
+                const weekNumber = Math.ceil((entryDate.getTime() - new Date(entryDate.getFullYear(), 0, 1).getTime()) / (7 * 24 * 60 * 60 * 1000));
+                return (
+                  <TableRow key={entry.id}>
+                    <StyledTableCell>{entry.projectName}</StyledTableCell>
+                    <StyledTableCell>{weekNumber}</StyledTableCell>
+                    <StyledTableCell>
+                      {entryDate.toLocaleDateString('nl-NL')}
+                    </StyledTableCell>
+                    <StyledTableCell>{entry.hours}</StyledTableCell>
+                  </TableRow>
+                );
+              })}
             </TableBody>
           </Table>
         </TableContainer>

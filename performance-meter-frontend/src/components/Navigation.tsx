@@ -1,6 +1,6 @@
 import React from 'react';
-import { Link as RouterLink, useLocation, useNavigate } from 'react-router-dom';
-import { AppBar, Toolbar, Typography, Button, Box } from '@mui/material';
+import { useLocation, useNavigate } from 'react-router-dom';
+import { AppBar, Toolbar, Button, Box } from '@mui/material';
 import { useAuth } from '../contexts/AuthContext';
 
 const Navigation = () => {
@@ -14,7 +14,7 @@ const Navigation = () => {
 
   const handleLogout = () => {
     logout();
-    navigate('/login');
+    navigate('/login' as string);
   };
 
   const isActive = (path: string) => location.pathname === path;
@@ -25,7 +25,7 @@ const Navigation = () => {
         <Box sx={{ flexGrow: 1, display: 'flex', gap: 2 }}>
           <Button
             color="inherit"
-            onClick={() => navigate('/dashboard')}
+            onClick={() => navigate('/dashboard' as string)}
             sx={{
               color: 'white',
               bgcolor: isActive('/dashboard') ? 'rgba(255, 255, 255, 0.1)' : 'transparent',
@@ -35,7 +35,7 @@ const Navigation = () => {
           </Button>
           <Button
             color="inherit"
-            onClick={() => navigate('/projects')}
+            onClick={() => navigate('/projects' as string)}
             sx={{
               color: 'white',
               bgcolor: isActive('/projects') ? 'rgba(255, 255, 255, 0.1)' : 'transparent',
@@ -45,7 +45,7 @@ const Navigation = () => {
           </Button>
           <Button
             color="inherit"
-            onClick={() => navigate('/time-registration')}
+            onClick={() => navigate('/time-registration' as string)}
             sx={{
               color: 'white',
               bgcolor: isActive('/time-registration') ? 'rgba(255, 255, 255, 0.1)' : 'transparent',

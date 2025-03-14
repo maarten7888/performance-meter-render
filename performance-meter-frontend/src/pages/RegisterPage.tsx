@@ -6,6 +6,7 @@ import { useAuth } from '../contexts/AuthContext';
 const RegisterPage: React.FC = () => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
+    const [name, setName] = useState('');
     const [yearTarget, setYearTarget] = useState('');
     const [error, setError] = useState('');
     const { register } = useAuth();
@@ -14,10 +15,10 @@ const RegisterPage: React.FC = () => {
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         try {
-            await register(email, password, parseInt(yearTarget));
-            navigate('/dashboard');
-        } catch (err) {
-            setError('Er is een fout opgetreden bij het registreren');
+            await register(email, password, name);
+            navigate('/dashboard' as string);
+        } catch (err: any) {
+            setError(err.message || 'Er is een fout opgetreden bij het registreren');
         }
     };
 
@@ -50,11 +51,31 @@ const RegisterPage: React.FC = () => {
                             margin="normal"
                             required
                             fullWidth
+                            id="name"
+                            label="Naam"
+                            name="name"
+                            autoComplete="name"
+                            autoFocus
+                            value={name}
+                            onChange={(e) => setName(e.target.value)}
+                            sx={{
+                                '& .MuiOutlinedInput-root': {
+                                    '& fieldset': { borderColor: 'white' },
+                                },
+                                '& .MuiInputLabel-root': { 
+                                    color: 'white'
+                                },
+                                '& .MuiOutlinedInput-input': { color: 'white' },
+                            }}
+                        />
+                        <TextField
+                            margin="normal"
+                            required
+                            fullWidth
                             id="email"
                             label="E-mailadres"
                             name="email"
                             autoComplete="email"
-                            autoFocus
                             value={email}
                             onChange={(e) => setEmail(e.target.value)}
                             sx={{
