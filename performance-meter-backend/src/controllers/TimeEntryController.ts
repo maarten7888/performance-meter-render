@@ -156,28 +156,4 @@ export class TimeEntryController {
       res.status(500).json({ message: 'Er is een fout opgetreden bij het ophalen van het jaardoel' });
     }
   }
-
-  async getTotalHours(req: AuthRequest, res: Response) {
-    try {
-      const userId = req.user?.id;
-      if (!userId) {
-        return res.status(401).json({ message: 'Niet geautoriseerd' });
-      }
-
-      const [result] = await pool.query(
-        `SELECT SUM(hours) as total_hours
-         FROM time_entries
-         WHERE userId = ? 
-         AND YEAR(date) = YEAR(CURRENT_DATE())`,
-        [userId]
-      );
-
-      const totalHours = (result as any[])[0]?.total_hours || 0;
-
-      res.json({ totalHours });
-    } catch (error) {
-      console.error('Error fetching total hours:', error);
-      res.status(500).json({ message: 'Er is een fout opgetreden bij het ophalen van het totaal aantal uren' });
-    }
-  }
 } 

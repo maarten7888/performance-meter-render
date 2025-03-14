@@ -23,6 +23,5 @@ router.delete('/:id', timeEntryController.deleteTimeEntry as express.RequestHand
 // Dashboard routes
 router.get('/monthly-report', timeEntryController.getMonthlyReport as express.RequestHandler);
 router.get('/yearly-target', timeEntryController.getYearlyTarget as express.RequestHandler);
-router.get('/total-hours', timeEntryController.getTotalHours as express.RequestHandler);
 
 export default router; 
