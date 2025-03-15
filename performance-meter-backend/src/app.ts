@@ -32,7 +32,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // Health check route
-app.get('/health', (req, res) => {
+app.get('/', (req, res) => {
   res.json({ status: 'healthy', timestamp: new Date().toISOString() });
 });
 
@@ -68,11 +68,5 @@ sequelize.sync()
   .catch((error: Error) => {
     console.error('[Database] Connection error:', error);
   });
-
-// Start server
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-  console.log(`Server is running on port ${PORT}`);
-});
 
 export default app; 
