@@ -8,7 +8,10 @@ export class AuthController {
     try {
       const { email, password } = req.body;
 
-      const user = await User.findOne({ where: { email } });
+      const user = await User.findOne({ 
+        where: { email },
+        attributes: ['id', 'email', 'password', 'role'] // Expliciet role ophalen
+      });
 
       if (!user) {
         res.status(401).json({ message: 'Ongeldige inloggegevens' });
@@ -21,8 +24,15 @@ export class AuthController {
         return;
       }
 
+      // Debug logging
+      console.log('User from database:', {
+        id: user.id,
+        email: user.email,
+        role: user.role
+      });
+
       const token = jwt.sign(
-        { id: user.id, email: user.email },
+        { id: user.id, email: user.email, role: user.role }, // Role toevoegen aan JWT
         process.env.JWT_SECRET as string,
         { expiresIn: '24h' }
       );
@@ -32,7 +42,7 @@ export class AuthController {
         user: {
           id: user.id,
           email: user.email,
-          role: user.role
+          role: user.role // Expliciet role meesturen
         }
       });
     } catch (error) {
