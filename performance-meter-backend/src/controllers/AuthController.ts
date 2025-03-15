@@ -10,11 +10,11 @@ export class AuthController {
 
       const user = await User.findOne({ 
         where: { email },
-        attributes: ['id', 'email', 'password', 'role'] // Expliciet role ophalen
+        attributes: ['id', 'email', 'password', 'role', 'yearlyTarget'] // Alle benodigde velden expliciet ophalen
       });
 
       // Debug logging voor raw user object
-      console.log('Raw user object:', user);
+      console.log('Raw user object:', JSON.stringify(user, null, 2));
       console.log('User properties:', Object.keys(user?.toJSON() || {}));
 
       if (!user) {
@@ -29,13 +29,13 @@ export class AuthController {
       }
 
       // Debug logging voor user data
-      console.log('User data before response:', {
+      const userData = {
         id: user.id,
         email: user.email,
         role: user.role,
-        rawRole: user.getDataValue('role'),
-        allValues: user.toJSON()
-      });
+        yearlyTarget: user.yearlyTarget
+      };
+      console.log('User data before response:', userData);
 
       const token = jwt.sign(
         { id: user.id, email: user.email, role: user.role },
@@ -45,16 +45,11 @@ export class AuthController {
 
       const responseData = {
         token,
-        user: {
-          id: user.id,
-          email: user.email,
-          name: user.get('name'),
-          role: user.getDataValue('role') // Probeer direct de waarde op te halen
-        }
+        user: userData
       };
 
       // Debug logging voor response
-      console.log('Sending response:', responseData);
+      console.log('Sending response:', JSON.stringify(responseData, null, 2));
 
       res.json(responseData);
     } catch (error) {
