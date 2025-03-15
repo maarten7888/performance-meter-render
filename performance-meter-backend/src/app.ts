@@ -31,9 +31,9 @@ app.use(cors(corsOptions));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Test route
-app.get('/api/test', (req, res) => {
-  res.json({ message: 'API is bereikbaar' });
+// Health check route
+app.get('/health', (req, res) => {
+  res.json({ status: 'healthy', timestamp: new Date().toISOString() });
 });
 
 // Routes

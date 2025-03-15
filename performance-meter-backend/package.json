@@ -2,11 +2,11 @@
   "name": "performance-meter-backend",
   "version": "1.0.0",
   "description": "Backend for Performance Meter application",
-  "main": "dist/app.js",
+  "main": "dist/server.js",
   "scripts": {
-    "start": "node dist/app.js",
-    "dev": "nodemon src/app.ts",
-    "build": "tsc && cp .env ./dist/",
+    "start": "node dist/server.js",
+    "dev": "nodemon src/server.ts",
+    "build": "tsc",
     "postinstall": "npm run build"
   },
   "dependencies": {
