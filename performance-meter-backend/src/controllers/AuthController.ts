@@ -32,7 +32,7 @@ export class AuthController {
       const userData = {
         id: user.id,
         email: user.email,
-        role: user.role,
+        role: user.role,  // Role is nu verplicht
         yearlyTarget: user.yearlyTarget
       };
       console.log('User data before response:', userData);
@@ -45,7 +45,11 @@ export class AuthController {
 
       const responseData = {
         token,
-        user: userData
+        user: {
+          id: user.id.toString(),
+          email: user.email,
+          role: user.role
+        }
       };
 
       // Debug logging voor response
