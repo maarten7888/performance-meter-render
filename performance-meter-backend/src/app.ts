@@ -26,7 +26,7 @@ sequelize.sync()
   .then(() => {
     console.log('Database connected and synchronized');
   })
-  .catch((error) => {
+  .catch((error: Error) => {
     console.error('Unable to connect to the database:', error);
   });
 

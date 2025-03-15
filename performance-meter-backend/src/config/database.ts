@@ -1,15 +1,17 @@
-import { createPool } from 'mysql2/promise';
+import { Sequelize } from 'sequelize';
 import dotenv from 'dotenv';
 
 dotenv.config();
 
-export const pool = createPool({
-  host: process.env.DB_HOST,
-  user: process.env.DB_USER,
-  password: process.env.DB_PASSWORD,
-  database: process.env.DB_NAME,
-  port: Number(process.env.DB_PORT),
-  waitForConnections: true,
-  connectionLimit: 10,
-  queueLimit: 0
+const dbUrl = process.env.DATABASE_URL || 'mysql://tothepoi_pm:63%401Cy9dz@mysql.tothepointcompany.nl:3306/tothepoi_performance_db';
+
+export const sequelize = new Sequelize(dbUrl, {
+  dialect: 'mysql',
+  dialectOptions: {
+    ssl: {
+      require: true,
+      rejectUnauthorized: false
+    }
+  },
+  logging: false
 }); 
