@@ -1,25 +1,19 @@
 import app from './app';
 
-const PORT = process.env.PORT || 3000;
+const port = process.env.PORT || 3000;
 
-const server = app.listen(PORT, () => {
-  console.log(`[Server] Running on port ${PORT}`);
+app.listen(port, () => {
+  console.log(`[Server] Running on port ${port}`);
+  console.log(`[Server] Environment: ${process.env.NODE_ENV || 'development'}`);
 });
 
-// Handle server errors
-server.on('error', (error: Error) => {
-  console.error('[Server] Error:', error);
-  process.exit(1);
-});
-
-// Handle uncaught exceptions
+// Global error handlers
 process.on('uncaughtException', (error: Error) => {
-  console.error('[Process] Uncaught Exception:', error);
+  console.error('[Server] Uncaught Exception:', error);
   process.exit(1);
 });
 
-// Handle unhandled promise rejections
 process.on('unhandledRejection', (reason: any) => {
-  console.error('[Process] Unhandled Rejection:', reason);
+  console.error('[Server] Unhandled Rejection:', reason);
   process.exit(1);
 }); 

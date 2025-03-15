@@ -10,14 +10,6 @@ dotenv.config();
 
 const app = express();
 
-// Debug middleware (voor het loggen van requests)
-app.use((req, res, next) => {
-  console.log(`[${new Date().toISOString()}] ${req.method} ${req.path}`);
-  console.log('Request headers:', req.headers);
-  console.log('Request body:', req.body);
-  next();
-});
-
 // CORS configuratie
 const corsOptions = {
   origin: ['https://pm.tothepointcompany.nl', 'http://localhost:3000'],
@@ -31,33 +23,42 @@ app.use(cors(corsOptions));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+// Debug middleware
+app.use((req, res, next) => {
+  console.log(`[${new Date().toISOString()}] ${req.method} ${req.url}`);
+  console.log('Headers:', req.headers);
+  if (req.body && Object.keys(req.body).length > 0) {
+    console.log('Body:', req.body);
+  }
+  next();
+});
+
 // Health check route
 app.get('/', (req, res) => {
   res.json({ status: 'healthy', timestamp: new Date().toISOString() });
 });
 
-// Routes
+// API routes
 app.use('/api/auth', authRoutes);
 app.use('/api/time-entries', timeEntryRoutes);
 app.use('/api/consultants', consultantRoutes);
 
-// 404 handler (voor niet-bestaande routes)
+// 404 handler
 app.use((req, res) => {
-  const message = `Route niet gevonden: ${req.method} ${req.path}`;
+  const message = `Route niet gevonden: ${req.method} ${req.url}`;
   console.log(`[${new Date().toISOString()}] 404 Not Found:`, message);
   res.status(404).json({ message });
 });
 
-// Error handling middleware (moet na routes komen)
-app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
-  const errorMessage = err.message || 'Er is een fout opgetreden op de server';
+// Error handling middleware
+app.use((err: Error, req: express.Request, res: express.Response, next: express.NextFunction) => {
   console.error(`[${new Date().toISOString()}] Error:`, {
-    message: errorMessage,
+    message: err.message,
     stack: err.stack,
-    path: req.path,
+    path: req.url,
     method: req.method
   });
-  res.status(500).json({ message: errorMessage });
+  res.status(500).json({ message: 'Er is een fout opgetreden op de server' });
 });
 
 // Database connection
