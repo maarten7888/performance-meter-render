@@ -79,20 +79,29 @@ export class AuthController {
         role: 'user' // Standaard rol voor nieuwe gebruikers
       });
 
+      // Debug logging voor user data
+      console.log('Created user:', user.toJSON());
+
       const token = jwt.sign(
-        { id: user.id, email: user.email },
+        { id: user.id, email: user.email, role: user.role },
         process.env.JWT_SECRET as string,
         { expiresIn: '24h' }
       );
 
-      res.status(201).json({
+      const responseData = {
         token,
         user: {
-          id: user.id,
+          id: user.id.toString(),
           email: user.email,
-          role: user.role
+          role: user.role,
+          name: user.email.split('@')[0]
         }
-      });
+      };
+
+      // Debug logging voor response
+      console.log('Register response:', JSON.stringify(responseData, null, 2));
+
+      res.status(201).json(responseData);
     } catch (error) {
       console.error('Registration error:', error);
       res.status(500).json({ message: 'Er is een fout opgetreden bij het registreren' });
