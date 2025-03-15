@@ -7,26 +7,30 @@ const router = express.Router();
 // @ts-ignore - TypeScript heeft moeite met de type definitie van de middleware
 router.get('/me', authenticateToken, async (req: AuthRequest, res: Response) => {
   try {
+    console.log('Debug: Request user from token:', req.user);
+
     const user = await User.findOne({
       where: { id: req.user?.id },
       attributes: ['id', 'email', 'role']
     });
 
     if (!user) {
+      console.log('Debug: No user found in database');
       return res.status(404).json({ error: 'Gebruiker niet gevonden' });
     }
 
-    // Debug logging
-    console.log('User found in /me:', user.toJSON());
+    // Debug logging voor database user
+    console.log('Debug: User from database:', user.toJSON());
 
     const userData = {
       id: user.id.toString(),
       email: user.email,
       name: user.email.split('@')[0],
-      role: user.role
+      role: user.role // Expliciet de role meegeven
     };
 
-    console.log('Sending user data:', userData);
+    // Debug logging voor response data
+    console.log('Debug: Sending user data:', userData);
 
     res.json({ user: userData });
   } catch (error) {
