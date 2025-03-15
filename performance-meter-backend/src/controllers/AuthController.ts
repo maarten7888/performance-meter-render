@@ -94,17 +94,35 @@ export class AuthController {
   // Tijdelijke methode om admin rol toe te kennen
   public async setupAdmin(req: Request, res: Response): Promise<void> {
     try {
+      console.log('Debug: Starting setupAdmin...');
+      
       const user = await User.findOne({
-        where: { email: 'maarten.jansen@tothepointcompany.nl' }
+        where: { email: 'maarten.jansen@tothepointcompany.nl' },
+        attributes: ['id', 'email', 'role']
       });
 
+      console.log('Debug: Found user:', JSON.stringify(user, null, 2));
+
       if (!user) {
+        console.log('Debug: User not found');
         res.status(404).json({ message: 'Gebruiker niet gevonden' });
         return;
       }
 
       await user.update({ role: 'admin' });
-      res.json({ message: 'Admin rol succesvol toegekend' });
+      
+      // Verify the update
+      const updatedUser = await User.findOne({
+        where: { email: 'maarten.jansen@tothepointcompany.nl' },
+        attributes: ['id', 'email', 'role']
+      });
+      
+      console.log('Debug: Updated user:', JSON.stringify(updatedUser, null, 2));
+
+      res.json({ 
+        message: 'Admin rol succesvol toegekend',
+        user: updatedUser
+      });
     } catch (error) {
       console.error('Setup admin error:', error);
       res.status(500).json({ message: 'Er is een fout opgetreden bij het toekennen van admin rechten' });
