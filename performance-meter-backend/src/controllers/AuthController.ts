@@ -10,12 +10,11 @@ export class AuthController {
 
       const user = await User.findOne({ 
         where: { email },
-        attributes: ['id', 'email', 'password', 'role', 'yearlyTarget'] // Alle benodigde velden expliciet ophalen
+        attributes: ['id', 'email', 'password', 'role'] // Expliciet role ophalen
       });
 
       // Debug logging voor raw user object
-      console.log('Raw user object:', JSON.stringify(user, null, 2));
-      console.log('User properties:', Object.keys(user?.toJSON() || {}));
+      console.log('Debug: Raw user object from login:', JSON.stringify(user, null, 2));
 
       if (!user) {
         res.status(401).json({ message: 'Ongeldige inloggegevens' });
@@ -30,33 +29,23 @@ export class AuthController {
 
       // Debug logging voor user data
       const userData = {
-        id: user.id,
+        id: user.id.toString(),
         email: user.email,
-        role: user.role,  // Role is nu verplicht
-        yearlyTarget: user.yearlyTarget
+        role: user.role,  // Role expliciet meegeven
+        name: user.email.split('@')[0]
       };
-      console.log('User data before response:', userData);
+      console.log('Debug: User data for response:', userData);
 
       const token = jwt.sign(
-        { id: user.id, email: user.email, role: user.role },
+        { id: user.id, email: user.email, role: user.role }, // Role in token opnemen
         process.env.JWT_SECRET as string,
         { expiresIn: '24h' }
       );
 
-      const responseData = {
+      res.json({
         token,
-        user: {
-          id: user.id.toString(),
-          email: user.email,
-          role: user.role,
-          name: user.email.split('@')[0]  // Tijdelijke oplossing voor name
-        }
-      };
-
-      // Debug logging voor response
-      console.log('Sending response:', JSON.stringify(responseData, null, 2));
-
-      res.json(responseData);
+        user: userData
+      });
     } catch (error) {
       console.error('Login error:', error);
       res.status(500).json({ message: 'Er is een fout opgetreden bij het inloggen' });
@@ -79,8 +68,12 @@ export class AuthController {
         role: 'user' // Standaard rol voor nieuwe gebruikers
       });
 
-      // Debug logging voor user data
-      console.log('Created user:', user.toJSON());
+      const userData = {
+        id: user.id.toString(),
+        email: user.email,
+        role: user.role,
+        name: user.email.split('@')[0]
+      };
 
       const token = jwt.sign(
         { id: user.id, email: user.email, role: user.role },
@@ -88,20 +81,10 @@ export class AuthController {
         { expiresIn: '24h' }
       );
 
-      const responseData = {
+      res.status(201).json({
         token,
-        user: {
-          id: user.id.toString(),
-          email: user.email,
-          role: user.role,
-          name: user.email.split('@')[0]
-        }
-      };
-
-      // Debug logging voor response
-      console.log('Register response:', JSON.stringify(responseData, null, 2));
-
-      res.status(201).json(responseData);
+        user: userData
+      });
     } catch (error) {
       console.error('Registration error:', error);
       res.status(500).json({ message: 'Er is een fout opgetreden bij het registreren' });
