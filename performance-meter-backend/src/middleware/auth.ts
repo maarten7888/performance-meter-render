@@ -6,7 +6,7 @@ export interface AuthRequest extends Request {
   user?: {
     id: number;
     email: string;
-    role?: string;
+    role: string;
   };
 }
 
@@ -19,7 +19,7 @@ export const authenticateToken = async (req: AuthRequest, res: Response, next: N
       return res.status(401).json({ message: 'Geen token gevonden' });
     }
 
-    const decoded = jwt.verify(token, process.env.JWT_SECRET as string) as { id: number };
+    const decoded = jwt.verify(token, process.env.JWT_SECRET as string) as { id: number; email: string; role: string };
     const user = await User.findByPk(decoded.id);
 
     if (!user) {
