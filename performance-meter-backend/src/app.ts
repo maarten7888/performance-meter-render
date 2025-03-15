@@ -11,6 +11,12 @@ dotenv.config();
 
 const app = express();
 
+// Debug middleware (voor het loggen van requests)
+app.use((req, res, next) => {
+  console.log(`[${new Date().toISOString()}] ${req.method} ${req.path}`);
+  next();
+});
+
 // CORS configuratie
 const corsOptions = {
   origin: ['https://pm.tothepointcompany.nl', 'http://localhost:3000'],
@@ -30,9 +36,15 @@ app.use('/api/projects', projectRoutes);
 app.use('/api/time-entries', timeEntryRoutes);
 app.use('/api/consultants', consultantRoutes);
 
+// 404 handler (voor niet-bestaande routes)
+app.use((req, res) => {
+  console.log(`[${new Date().toISOString()}] 404 Not Found: ${req.method} ${req.path}`);
+  res.status(404).json({ message: 'Route niet gevonden' });
+});
+
 // Error handling middleware (moet na routes komen)
 app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
-  console.error(err.stack);
+  console.error(`[${new Date().toISOString()}] Error:`, err.stack);
   res.status(500).json({ message: 'Er is een fout opgetreden op de server' });
 });
 
