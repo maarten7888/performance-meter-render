@@ -15,7 +15,7 @@ export class AuthController {
         return;
       }
 
-      const validPassword = await user.validatePassword(password);
+      const validPassword = await bcrypt.compare(password, user.password);
       if (!validPassword) {
         res.status(401).json({ message: 'Ongeldige inloggegevens' });
         return;
@@ -74,6 +74,26 @@ export class AuthController {
     } catch (error) {
       console.error('Registration error:', error);
       res.status(500).json({ message: 'Er is een fout opgetreden bij het registreren' });
+    }
+  }
+
+  // Tijdelijke methode om admin rol toe te kennen
+  public async setupAdmin(req: Request, res: Response): Promise<void> {
+    try {
+      const user = await User.findOne({
+        where: { email: 'maarten.jansen@tothepointcompany.nl' }
+      });
+
+      if (!user) {
+        res.status(404).json({ message: 'Gebruiker niet gevonden' });
+        return;
+      }
+
+      await user.update({ role: 'admin' });
+      res.json({ message: 'Admin rol succesvol toegekend' });
+    } catch (error) {
+      console.error('Setup admin error:', error);
+      res.status(500).json({ message: 'Er is een fout opgetreden bij het toekennen van admin rechten' });
     }
   }
 } 
