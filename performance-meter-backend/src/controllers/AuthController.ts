@@ -41,7 +41,7 @@ export class AuthController {
       console.log('Debug: User data for response:', JSON.stringify(userData, null, 2));
 
       const tokenData = { 
-        id: user.id, 
+        id: user.id,  // Gebruik 'id' in plaats van 'userId'
         email: user.email, 
         role: user.role 
       };

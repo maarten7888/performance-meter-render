@@ -19,12 +19,17 @@ export const authenticateToken = async (req: AuthRequest, res: Response, next: N
       return res.status(401).json({ message: 'Geen token gevonden' });
     }
 
-    const decoded = jwt.verify(token, process.env.JWT_SECRET as string) as { id: number; email: string; role: string };
+    console.log('Debug: Verifying token:', token);
+    const decoded = jwt.verify(token, process.env.JWT_SECRET as string) as { 
+      id: number; 
+      email: string; 
+      role: string 
+    };
     
-    // Debug logging voor token data
-    console.log('Decoded token:', decoded);
+    console.log('Debug: Decoded token:', decoded);
     
     const user = await User.findByPk(decoded.id);
+    console.log('Debug: Found user from token:', user?.toJSON());
 
     if (!user) {
       return res.status(401).json({ message: 'Ongeldige gebruiker' });
@@ -42,11 +47,11 @@ export const authenticateToken = async (req: AuthRequest, res: Response, next: N
       role: user.role
     };
 
-    // Debug logging voor user data
-    console.log('Authenticated user:', req.user);
+    console.log('Debug: Set request user:', req.user);
 
     next();
   } catch (error) {
+    console.error('Auth error:', error);
     return res.status(401).json({ message: 'Ongeldig token' });
   }
 };
