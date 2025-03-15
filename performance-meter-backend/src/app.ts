@@ -24,17 +24,17 @@ app.use(cors(corsOptions));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Error handling middleware
-app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
-  console.error(err.stack);
-  res.status(500).json({ message: 'Er is een fout opgetreden op de server' });
-});
-
 // Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/projects', projectRoutes);
 app.use('/api/time-entries', timeEntryRoutes);
 app.use('/api/consultants', consultantRoutes);
+
+// Error handling middleware (moet na routes komen)
+app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
+  console.error(err.stack);
+  res.status(500).json({ message: 'Er is een fout opgetreden op de server' });
+});
 
 // Database connection
 sequelize.sync()
