@@ -40,6 +40,7 @@ export class AuthController {
       };
       console.log('Debug: User data for response:', JSON.stringify(userData, null, 2));
 
+      // Token data moet exact overeenkomen met wat we in de middleware verwachten
       const tokenData = { 
         id: user.id,  // Gebruik 'id' in plaats van 'userId'
         email: user.email, 
@@ -48,14 +49,18 @@ export class AuthController {
       console.log('Debug: Token data:', JSON.stringify(tokenData, null, 2));
 
       const token = jwt.sign(
-        tokenData,
+        tokenData,  // Gebruik de tokenData die we net hebben gemaakt
         process.env.JWT_SECRET as string,
         { expiresIn: '24h' }
       );
 
+      // Debug: Decodeer de token om te verifiëren dat de data correct is
+      const decodedToken = jwt.decode(token);
+      console.log('Debug: Decoded token after signing:', decodedToken);
+
       const responseData = {
         token,
-        user: userData
+        user: userData  // Gebruik de userData die we net hebben gemaakt
       };
       console.log('Debug: Final response data:', JSON.stringify(responseData, null, 2));
 
