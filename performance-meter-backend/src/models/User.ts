@@ -7,6 +7,7 @@ export class User extends Model {
   public email!: string;
   public password!: string;
   public yearlyTarget!: number;
+  public role!: 'admin' | 'user';
   public readonly createdAt!: Date;
   public readonly updatedAt!: Date;
 }
@@ -33,6 +34,11 @@ User.init(
     yearlyTarget: {
       type: DataTypes.DECIMAL(10, 2),
       allowNull: true,
+    },
+    role: {
+      type: DataTypes.ENUM('admin', 'user'),
+      allowNull: false,
+      defaultValue: 'user',
     },
   },
   {
