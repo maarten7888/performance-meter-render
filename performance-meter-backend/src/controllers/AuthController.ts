@@ -32,17 +32,25 @@ export class AuthController {
       });
 
       const token = jwt.sign(
-        { id: user.id, email: user.email, role: user.role }, // Role toevoegen aan JWT
+        { id: user.id, email: user.email, role: user.role },
         process.env.JWT_SECRET as string,
         { expiresIn: '24h' }
       );
+
+      // Debug logging voor de response
+      console.log('Sending login response:', {
+        id: user.id,
+        email: user.email,
+        role: user.role
+      });
 
       res.json({
         token,
         user: {
           id: user.id,
           email: user.email,
-          role: user.role // Expliciet role meesturen
+          name: user.get('name'), // Als deze bestaat
+          role: user.role // Expliciet de role toevoegen
         }
       });
     } catch (error) {
