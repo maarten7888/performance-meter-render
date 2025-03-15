@@ -48,7 +48,8 @@ export class AuthController {
         user: {
           id: user.id.toString(),
           email: user.email,
-          role: user.role
+          role: user.role,
+          name: user.email.split('@')[0]  // Tijdelijke oplossing voor name
         }
       };
 
