@@ -1,12 +1,17 @@
 import React from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { AppBar, Toolbar, Button, Box } from '@mui/material';
+import { AppBar, Toolbar, Button, Box, IconButton, Tooltip } from '@mui/material';
+import LogoutIcon from '@mui/icons-material/Logout';
 import { useAuth } from '../contexts/AuthContext';
 
 const Navigation = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { isAuthenticated, logout } = useAuth();
+  const { isAuthenticated, logout, user } = useAuth();
+
+  // Debug logging
+  console.log('Navigation - User object:', user);
+  console.log('Navigation - Is admin?', user?.role === 'admin');
 
   if (!isAuthenticated) {
     return null;
@@ -18,6 +23,9 @@ const Navigation = () => {
   };
 
   const isActive = (path: string) => location.pathname === path;
+
+  // Alleen tonen als de gebruiker admin rechten heeft
+  const showManagement = user?.role === 'admin';
 
   return (
     <AppBar position="static" sx={{ bgcolor: 'rgba(255, 255, 255, 0.1)', boxShadow: 'none', mb: 2 }}>
@@ -53,10 +61,32 @@ const Navigation = () => {
           >
             Urenregistratie
           </Button>
+          {showManagement && (
+            <Button
+              color="inherit"
+              onClick={() => navigate('/management' as string)}
+              sx={{
+                color: 'white',
+                bgcolor: isActive('/management') ? 'rgba(255, 255, 255, 0.1)' : 'transparent',
+              }}
+            >
+              Beheer
+            </Button>
+          )}
         </Box>
-        <Button color="inherit" onClick={handleLogout} sx={{ color: 'white' }}>
-          Uitloggen
-        </Button>
+        <Tooltip title="Uitloggen">
+          <IconButton 
+            onClick={handleLogout} 
+            sx={{ 
+              color: 'white',
+              '&:hover': {
+                backgroundColor: 'rgba(255, 255, 255, 0.1)'
+              }
+            }}
+          >
+            <LogoutIcon />
+          </IconButton>
+        </Tooltip>
       </Toolbar>
     </AppBar>
   );

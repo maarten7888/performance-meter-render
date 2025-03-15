@@ -7,6 +7,7 @@ import LoginPage from './pages/LoginPage';
 import TimeRegistration from './pages/TimeRegistration';
 import Projects from './pages/Projects';
 import Dashboard from './pages/Dashboard';
+import Management from './pages/Management';
 import Layout from './components/Layout';
 
 // Import Montserrat font
@@ -40,16 +41,20 @@ const theme = createTheme({
   },
 });
 
-const PrivateRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const { isAuthenticated, loading } = useAuth();
+const PrivateRoute: React.FC<{ children: React.ReactNode; requireAdmin?: boolean }> = ({ children, requireAdmin }) => {
+  const { isAuthenticated, loading, user } = useAuth();
   const location = useLocation();
 
   if (loading) {
-    return null; // Of een loading spinner
+    return null;
   }
 
   if (!isAuthenticated) {
     return <Navigate to="/login" state={{ from: location }} replace />;
+  }
+
+  if (requireAdmin && user?.role !== 'admin') {
+    return <Navigate to="/dashboard" replace />;
   }
 
   return <>{children}</>;
@@ -81,6 +86,13 @@ function App() {
               <PrivateRoute>
                 <Layout>
                   <Projects />
+                </Layout>
+              </PrivateRoute>
+            } />
+            <Route path="/management" element={
+              <PrivateRoute requireAdmin>
+                <Layout>
+                  <Management />
                 </Layout>
               </PrivateRoute>
             } />

@@ -5,6 +5,7 @@ interface User {
     id: number;
     email: string;
     name: string;
+    role?: 'admin' | 'user';
 }
 
 interface AuthResponse {
@@ -54,7 +55,9 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     const login = async (email: string, password: string) => {
         try {
             const response = await api.post<AuthResponse>('/api/auth/login', { email, password });
+            console.log('Login response:', response.data);
             const { token, user: userData } = response.data;
+            console.log('User data from login:', userData);
             localStorage.setItem('token', token);
             api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
             setUser(userData);

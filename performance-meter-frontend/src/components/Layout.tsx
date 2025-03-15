@@ -12,10 +12,12 @@ import {
   ListItemText,
   useTheme,
   useMediaQuery,
+  Tooltip
 } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import MenuIcon from '@mui/icons-material/Menu';
+import LogoutIcon from '@mui/icons-material/Logout';
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -56,7 +58,10 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
           </ListItem>
         ))}
         <ListItem button onClick={handleLogout}>
-          <ListItemText primary="Uitloggen" />
+          <Box sx={{ display: 'flex', alignItems: 'center' }}>
+            <LogoutIcon sx={{ mr: 1 }} />
+            <ListItemText primary="Uitloggen" />
+          </Box>
         </ListItem>
       </List>
     </Box>
@@ -77,9 +82,20 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
               <MenuIcon />
             </IconButton>
           )}
-          <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
-            Performance Meter
-          </Typography>
+          <Box sx={{ display: 'flex', alignItems: 'center', flexGrow: 1 }}>
+            <img
+              src="https://werkenbijtothepoint.nl/wp-content/uploads/2025/01/cropped-Ontwerp-zonder-titel-1.png"
+              alt="To The Point Logo"
+              style={{
+                height: '40px',
+                marginRight: '12px',
+                objectFit: 'contain'
+              }}
+            />
+            <Typography variant="h6" component="div">
+              Performance Meter
+            </Typography>
+          </Box>
           {!isMobile && (
             <>
               {menuItems.map((item) => (
@@ -91,9 +107,20 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                   {item.text}
                 </Button>
               ))}
-              <Button color="inherit" onClick={handleLogout}>
-                Uitloggen
-              </Button>
+              <Tooltip title="Uitloggen">
+                <IconButton 
+                  color="inherit" 
+                  onClick={handleLogout}
+                  sx={{ 
+                    color: 'white',
+                    '&:hover': {
+                      backgroundColor: 'rgba(255, 255, 255, 0.1)'
+                    }
+                  }}
+                >
+                  <LogoutIcon />
+                </IconButton>
+              </Tooltip>
             </>
           )}
         </Toolbar>
