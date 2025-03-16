@@ -7,64 +7,69 @@ export class AuthController {
   public async login(req: Request, res: Response): Promise<void> {
     try {
       const { email, password } = req.body;
+      console.log('Debug: Login poging voor:', email);
 
-      console.log('Debug: Login attempt for email:', email);
-
+      // 1. Gebruiker ophalen met alle benodigde velden
       const user = await User.findOne({ 
         where: { email },
-        attributes: ['id', 'email', 'password', 'role'] // Expliciet role ophalen
+        attributes: ['id', 'email', 'password', 'role']
       });
 
-      // Debug logging voor raw user object
-      console.log('Debug: Raw user object from login:', JSON.stringify(user, null, 2));
-      console.log('Debug: User properties:', Object.keys(user?.toJSON() || {}));
-      console.log('Debug: User role:', user?.role);
-
       if (!user) {
+        console.log('Debug: Gebruiker niet gevonden');
         res.status(401).json({ message: 'Ongeldige inloggegevens' });
         return;
       }
 
+      console.log('Debug: Gebruiker gevonden:', {
+        id: user.id,
+        email: user.email,
+        role: user.role
+      });
+
+      // 2. Wachtwoord valideren
       const validPassword = await bcrypt.compare(password, user.password);
       if (!validPassword) {
+        console.log('Debug: Ongeldig wachtwoord');
         res.status(401).json({ message: 'Ongeldige inloggegevens' });
         return;
       }
 
-      // Debug logging voor user data
+      // 3. Response data voorbereiden
       const userData = {
         id: user.id.toString(),
         email: user.email,
-        role: user.role,  // Role expliciet meegeven
-        name: user.email.split('@')[0]
+        name: user.email.split('@')[0],
+        role: user.role // Expliciet role toevoegen
       };
-      console.log('Debug: User data for response:', JSON.stringify(userData, null, 2));
 
-      // Token data moet exact overeenkomen met wat we in de middleware verwachten
-      const tokenData = { 
-        id: user.id,  // Gebruik 'id' in plaats van 'userId'
-        email: user.email, 
-        role: user.role 
+      // 4. JWT token maken
+      const tokenPayload = {
+        id: user.id, // Gebruik 'id' in plaats van 'userId'
+        email: user.email,
+        role: user.role
       };
-      console.log('Debug: Token data:', JSON.stringify(tokenData, null, 2));
 
       const token = jwt.sign(
-        tokenData,  // Gebruik de tokenData die we net hebben gemaakt
+        tokenPayload,
         process.env.JWT_SECRET as string,
         { expiresIn: '24h' }
       );
 
-      // Debug: Decodeer de token om te verifiëren dat de data correct is
+      // 5. Debug: Verifieer token data
       const decodedToken = jwt.decode(token);
-      console.log('Debug: Decoded token after signing:', decodedToken);
+      console.log('Debug: Token payload:', tokenPayload);
+      console.log('Debug: Decoded token:', decodedToken);
 
-      const responseData = {
+      // 6. Response versturen
+      const response = {
         token,
-        user: userData  // Gebruik de userData die we net hebben gemaakt
+        user: userData
       };
-      console.log('Debug: Final response data:', JSON.stringify(responseData, null, 2));
 
-      res.json(responseData);
+      console.log('Debug: Sending response:', JSON.stringify(response, null, 2));
+      res.json(response);
+
     } catch (error) {
       console.error('Login error:', error);
       res.status(500).json({ message: 'Er is een fout opgetreden bij het inloggen' });
@@ -84,18 +89,24 @@ export class AuthController {
       const user = await User.create({
         email,
         password,
-        role: 'user' // Standaard rol voor nieuwe gebruikers
+        role: 'user'
       });
 
       const userData = {
         id: user.id.toString(),
         email: user.email,
-        role: user.role,
-        name: user.email.split('@')[0]
+        name: user.email.split('@')[0],
+        role: user.role
+      };
+
+      const tokenPayload = {
+        id: user.id,
+        email: user.email,
+        role: user.role
       };
 
       const token = jwt.sign(
-        { id: user.id, email: user.email, role: user.role },
+        tokenPayload,
         process.env.JWT_SECRET as string,
         { expiresIn: '24h' }
       );
@@ -110,7 +121,6 @@ export class AuthController {
     }
   }
 
-  // Tijdelijke methode om admin rol toe te kennen
   public async setupAdmin(req: Request, res: Response): Promise<void> {
     try {
       console.log('Debug: Starting setupAdmin...');
@@ -120,8 +130,6 @@ export class AuthController {
         attributes: ['id', 'email', 'role']
       });
 
-      console.log('Debug: Found user:', JSON.stringify(user, null, 2));
-
       if (!user) {
         console.log('Debug: User not found');
         res.status(404).json({ message: 'Gebruiker niet gevonden' });
@@ -130,7 +138,6 @@ export class AuthController {
 
       await user.update({ role: 'admin' });
       
-      // Verify the update
       const updatedUser = await User.findOne({
         where: { email: 'maarten.jansen@tothepointcompany.nl' },
         attributes: ['id', 'email', 'role']

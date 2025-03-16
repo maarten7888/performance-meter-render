@@ -16,50 +16,65 @@ export const authenticateToken = async (req: AuthRequest, res: Response, next: N
     const token = authHeader && authHeader.split(' ')[1];
 
     if (!token) {
+      console.log('Debug: Geen token gevonden in request');
       return res.status(401).json({ message: 'Geen token gevonden' });
     }
 
-    console.log('Debug: Verifying token:', token);
+    console.log('Debug: Token ontvangen voor verificatie');
     
-    // Eerst decoderen zonder verificatie om te zien wat er in de token zit
+    // Token decoderen zonder verificatie voor debug doeleinden
     const decodedWithoutVerify = jwt.decode(token);
-    console.log('Debug: Token contents before verification:', decodedWithoutVerify);
+    console.log('Debug: Token inhoud:', decodedWithoutVerify);
     
+    // Token verifiëren
     const decoded = jwt.verify(token, process.env.JWT_SECRET as string) as { 
       id: number; 
       email: string; 
       role: string 
     };
     
-    console.log('Debug: Decoded token after verification:', decoded);
+    console.log('Debug: Geverifieerde token data:', decoded);
     
-    // Controleer of we de verwachte velden hebben
+    // Controleer verplichte velden
     if (!decoded.id || !decoded.email || !decoded.role) {
-      console.error('Debug: Missing required fields in token:', decoded);
+      console.error('Debug: Ontbrekende verplichte velden in token:', {
+        hasId: !!decoded.id,
+        hasEmail: !!decoded.email,
+        hasRole: !!decoded.role
+      });
       return res.status(401).json({ message: 'Ongeldig token formaat' });
     }
     
+    // Gebruiker ophalen uit database
     const user = await User.findByPk(decoded.id);
-    console.log('Debug: Found user from token:', user?.toJSON());
-
     if (!user) {
+      console.log('Debug: Gebruiker niet gevonden in database voor id:', decoded.id);
       return res.status(401).json({ message: 'Ongeldige gebruiker' });
     }
 
+    console.log('Debug: Gebruiker gevonden in database:', {
+      id: user.id,
+      email: user.email,
+      role: user.role
+    });
+
     // Verifieer dat de role in het token overeenkomt met de database
     if (decoded.role !== user.role) {
-      console.error('Role mismatch:', { tokenRole: decoded.role, dbRole: user.role });
+      console.error('Debug: Role mismatch:', { 
+        tokenRole: decoded.role, 
+        dbRole: user.role 
+      });
       return res.status(401).json({ message: 'Ongeldige gebruiker rol' });
     }
 
+    // Gebruiker aan request toevoegen
     req.user = {
       id: user.id,
       email: user.email,
       role: user.role
     };
 
-    console.log('Debug: Set request user:', req.user);
-
+    console.log('Debug: Request user object ingesteld:', req.user);
     next();
   } catch (error) {
     console.error('Auth error:', error);
@@ -68,8 +83,15 @@ export const authenticateToken = async (req: AuthRequest, res: Response, next: N
 };
 
 export const requireAdmin = async (req: AuthRequest, res: Response, next: NextFunction) => {
-  if (req.user?.role !== 'admin') {
+  if (!req.user) {
+    return res.status(401).json({ message: 'Niet geauthenticeerd' });
+  }
+  
+  if (req.user.role !== 'admin') {
+    console.log('Debug: Toegang geweigerd - geen admin rechten voor gebruiker:', req.user.email);
     return res.status(403).json({ message: 'Geen toegang. Admin rechten vereist.' });
   }
+  
+  console.log('Debug: Admin toegang verleend aan:', req.user.email);
   next();
 }; 
