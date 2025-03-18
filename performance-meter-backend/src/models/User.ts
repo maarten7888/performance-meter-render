@@ -10,6 +10,10 @@ export class User extends Model {
   public role!: 'admin' | 'user';
   public readonly createdAt!: Date;
   public readonly updatedAt!: Date;
+
+  public async validatePassword(password: string): Promise<boolean> {
+    return bcrypt.compare(password, this.password);
+  }
 }
 
 User.init(
@@ -60,8 +64,4 @@ User.init(
       },
     },
   }
-);
-
-User.prototype.validatePassword = async function(password: string): Promise<boolean> {
-  return bcrypt.compare(password, this.password);
-}; 
+); 
