@@ -24,6 +24,7 @@ export const sequelize = new Sequelize(dbUrl, {
 // MySQL pool configuratie
 export const pool = mysql.createPool({
   host: dbConfig.hostname,
+  port: parseInt(dbConfig.port) || 3306,
   user: dbConfig.username,
   password: decodeURIComponent(dbConfig.password),
   database: dbConfig.pathname.substr(1),
