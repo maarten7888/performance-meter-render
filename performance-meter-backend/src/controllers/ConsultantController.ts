@@ -2,6 +2,12 @@ import { Request, Response } from 'express';
 import { User } from '../models/User';
 
 export class ConsultantController {
+  constructor() {
+    // Bind de methoden aan de class instance
+    this.getAllConsultants = this.getAllConsultants.bind(this);
+    this.updateYearTarget = this.updateYearTarget.bind(this);
+  }
+
   // Haal alle consultants op
   public async getAllConsultants(req: Request, res: Response): Promise<void> {
     console.log('[ConsultantController] getAllConsultants aangeroepen');
