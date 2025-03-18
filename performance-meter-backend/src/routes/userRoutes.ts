@@ -1,11 +1,11 @@
-import express, { Response } from 'express';
-import { authenticateToken, AuthRequest } from '../middleware/auth';
+import express, { Response, Request } from 'express';
+import { authenticateToken } from '../middleware/auth';
 import { User } from '../models/User';
 
 const router = express.Router();
 
 // @ts-ignore - TypeScript heeft moeite met de type definitie van de middleware
-router.get('/me', authenticateToken, async (req: AuthRequest, res: Response) => {
+router.get('/me', authenticateToken, async (req: Request, res: Response) => {
   try {
     console.log('Debug: Request user from token:', req.user);
 

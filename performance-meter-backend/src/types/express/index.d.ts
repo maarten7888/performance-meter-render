@@ -4,6 +4,7 @@ export interface AuthRequest extends Request {
   user?: {
     id: number;
     email: string;
+    role: string;
   };
 }
 
@@ -13,6 +14,7 @@ declare global {
       user?: {
         id: number;
         email: string;
+        role: string;
       };
     }
   }
