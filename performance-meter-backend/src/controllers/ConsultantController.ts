@@ -1,5 +1,6 @@
-import { Request, Response } from 'express';
+import { Response } from 'express';
 import { pool } from '../config/database';
+import { AuthRequest } from '../middleware/auth';
 
 export class ConsultantController {
   constructor() {
@@ -9,59 +10,41 @@ export class ConsultantController {
   }
 
   // Haal alle consultants op
-  public async getAllConsultants(req: Request, res: Response): Promise<void> {
-    console.log('[ConsultantController] getAllConsultants aangeroepen');
-    console.log('[ConsultantController] Request headers:', req.headers);
-    console.log('[ConsultantController] Request user:', (req as any).user);
-    
+  public async getAllConsultants(req: AuthRequest, res: Response): Promise<void> {
     try {
-      console.log('[ConsultantController] Start ophalen consultants');
       const [consultants] = await pool.query(
         'SELECT id, email, yearlyTarget FROM users WHERE role = ?',
         ['user']
       );
-      console.log('[ConsultantController] Aantal consultants gevonden:', (consultants as any[]).length);
-      console.log('[ConsultantController] Consultants:', JSON.stringify(consultants, null, 2));
       res.json(consultants);
     } catch (error) {
-      console.error('[ConsultantController] Error fetching consultants:', error);
-      res.status(500).json({ message: 'Er is een fout opgetreden bij het ophalen van consultants' });
+      console.error('Error fetching consultants:', error);
+      res.status(500).json({ message: 'Error fetching consultants' });
     }
   }
 
   // Update jaartarget van een consultant
-  public async updateYearTarget(req: Request, res: Response): Promise<void> {
+  public async updateYearTarget(req: AuthRequest, res: Response): Promise<void> {
     const { id } = req.params;
     const { yearTarget } = req.body;
 
-    console.log('[ConsultantController] updateYearTarget aangeroepen');
-    console.log('[ConsultantController] ID:', id);
-    console.log('[ConsultantController] YearTarget:', yearTarget);
-    console.log('[ConsultantController] Request headers:', req.headers);
-    console.log('[ConsultantController] Request user:', (req as any).user);
-
     try {
-      console.log(`[ConsultantController] Zoeken naar consultant met ID ${id}`);
       const [consultants] = await pool.query(
         'SELECT id, email, yearlyTarget FROM users WHERE id = ? AND role = ?',
         [id, 'user']
       );
 
       if (!(consultants as any[]).length) {
-        console.log(`[ConsultantController] Consultant niet gevonden met ID ${id}`);
-        res.status(404).json({ message: 'Consultant niet gevonden' });
+        res.status(404).json({ message: 'Consultant not found' });
         return;
       }
 
       const consultant = (consultants as any[])[0];
-      console.log(`[ConsultantController] Consultant gevonden:`, JSON.stringify(consultant, null, 2));
 
       await pool.query(
         'UPDATE users SET yearlyTarget = ? WHERE id = ?',
         [yearTarget, id]
       );
-
-      console.log(`[ConsultantController] Jaartarget succesvol bijgewerkt voor consultant ${id}`);
       
       res.json({
         id: consultant.id,
@@ -69,8 +52,8 @@ export class ConsultantController {
         yearlyTarget: yearTarget
       });
     } catch (error) {
-      console.error('[ConsultantController] Error updating year target:', error);
-      res.status(500).json({ message: 'Er is een fout opgetreden bij het bijwerken van het jaartarget' });
+      console.error('Error updating year target:', error);
+      res.status(500).json({ message: 'Error updating year target' });
     }
   }
 } 
