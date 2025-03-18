@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
-import { User } from '../models/User';
+import { pool } from '../config/database';
 
 // Type definitie voor de user in de request
 interface RequestUser {
@@ -49,12 +49,17 @@ export const authenticateToken = async (req: Request, res: Response, next: NextF
     }
     
     // Gebruiker ophalen uit database
-    const user = await User.findByPk(decoded.userId);
-    if (!user) {
+    const [users] = await pool.query(
+      'SELECT id, email, role FROM users WHERE id = ?',
+      [decoded.userId]
+    );
+    
+    if (!(users as any[]).length) {
       console.log('Debug: Gebruiker niet gevonden in database voor id:', decoded.userId);
       return res.status(401).json({ message: 'Ongeldige gebruiker' });
     }
 
+    const user = (users as any[])[0];
     console.log('Debug: Gebruiker gevonden in database:', {
       id: user.id,
       email: user.email,
