@@ -25,14 +25,19 @@ app.listen(port, () => {
   console.log('[Server] Available routes:');
   app._router.stack.forEach((middleware: any) => {
     if (middleware.route) {
-      console.log(`[Server] Route: ${middleware.route.path}`);
+      console.log(`[Server] Direct route: ${middleware.route.path}`);
+      console.log(`[Server] Methods:`, middleware.route.methods);
     } else if (middleware.name === 'router') {
-      console.log(`[Server] Router: ${middleware.regexp}`);
+      console.log(`[Server] Router middleware at: ${middleware.regexp}`);
       middleware.handle.stack.forEach((handler: any) => {
         if (handler.route) {
-          console.log(`[Server] ${handler.route.stack[0].method.toUpperCase()} ${handler.route.path}`);
+          console.log(`[Server] Route: ${handler.route.path}`);
+          console.log(`[Server] Method: ${handler.route.stack[0].method.toUpperCase()}`);
+          console.log(`[Server] Full path: ${middleware.regexp}${handler.route.path}`);
         }
       });
+    } else {
+      console.log(`[Server] Other middleware: ${middleware.name}`);
     }
   });
 }); 
