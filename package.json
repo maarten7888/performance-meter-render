@@ -6,7 +6,8 @@
   "scripts": {
     "start": "node dist/server.js",
     "dev": "ts-node-dev --respawn --transpile-only src/server.ts",
-    "build": "tsc -p tsconfig.backend.json",
+    "clean": "rimraf dist",
+    "build": "npm run clean && tsc -p tsconfig.backend.json",
     "test": "jest"
   },
   "dependencies": {
@@ -39,6 +40,7 @@
     "@types/jsonwebtoken": "^9.0.1",
     "@types/node": "^18.15.11",
     "jest": "^29.5.0",
+    "rimraf": "^5.0.5",
     "ts-jest": "^29.1.0",
     "ts-node-dev": "^2.0.0",
     "typescript": "^4.9.5"
