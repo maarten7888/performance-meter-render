@@ -1,11 +1,13 @@
 import app from './app';
+import dotenv from 'dotenv';
+
+dotenv.config();
 
 const port = process.env.PORT || 3000;
 
-app.listen(port, () => {
-  console.log(`[Server] Running on port ${port}`);
-  console.log(`[Server] Environment: ${process.env.NODE_ENV || 'development'}`);
-});
+console.log('[Server] Starting server...');
+console.log(`[Server] Environment: ${process.env.NODE_ENV}`);
+console.log(`[Server] Port: ${port}`);
 
 // Global error handlers
 process.on('uncaughtException', (error: Error) => {
@@ -13,7 +15,24 @@ process.on('uncaughtException', (error: Error) => {
   process.exit(1);
 });
 
-process.on('unhandledRejection', (reason: any) => {
-  console.error('[Server] Unhandled Rejection:', reason);
+process.on('unhandledRejection', (reason: any, promise: Promise<any>) => {
+  console.error('[Server] Unhandled Rejection at:', promise, 'reason:', reason);
   process.exit(1);
+});
+
+app.listen(port, () => {
+  console.log(`[Server] Server is running on port ${port}`);
+  console.log('[Server] Available routes:');
+  app._router.stack.forEach((middleware: any) => {
+    if (middleware.route) {
+      console.log(`[Server] Route: ${middleware.route.path}`);
+    } else if (middleware.name === 'router') {
+      console.log(`[Server] Router: ${middleware.regexp}`);
+      middleware.handle.stack.forEach((handler: any) => {
+        if (handler.route) {
+          console.log(`[Server] ${handler.route.stack[0].method.toUpperCase()} ${handler.route.path}`);
+        }
+      });
+    }
+  });
 }); 

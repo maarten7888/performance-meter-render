@@ -18,6 +18,8 @@ const corsOptions = {
   credentials: true
 };
 
+console.log('[App] Middleware configureren...');
+
 // Middleware
 app.use(cors(corsOptions));
 app.use(express.json());
@@ -26,27 +28,59 @@ app.use(express.urlencoded({ extended: true }));
 // Debug middleware
 app.use((req, res, next) => {
   console.log(`[${new Date().toISOString()}] ${req.method} ${req.url}`);
-  console.log('Headers:', req.headers);
+  console.log('[Debug] Headers:', JSON.stringify(req.headers, null, 2));
   if (req.body && Object.keys(req.body).length > 0) {
-    console.log('Body:', req.body);
+    console.log('[Debug] Body:', JSON.stringify(req.body, null, 2));
   }
   next();
 });
 
 // Health check route
 app.get('/', (req, res) => {
+  console.log('[Health Check] Route aangeroepen');
   res.json({ status: 'healthy', timestamp: new Date().toISOString() });
 });
 
+console.log('[App] Routes registreren...');
+
 // API routes
+console.log('[App] Auth routes registreren...');
 app.use('/api/auth', authRoutes);
+
+console.log('[App] Time entry routes registreren...');
 app.use('/api/time-entries', timeEntryRoutes);
+
+console.log('[App] Consultant routes registreren...');
 app.use('/api/consultants', consultantRoutes);
+
+console.log('[App] Alle routes zijn geregistreerd');
+
+// Debug: Toon alle geregistreerde routes
+console.log('[App] Geregistreerde routes:');
+app._router.stack.forEach((middleware: any) => {
+  if (middleware.route) {
+    console.log(`[App] Route: ${middleware.route.path}`);
+    console.log(`[App] Methods:`, middleware.route.methods);
+  } else if (middleware.name === 'router') {
+    console.log(`[App] Router: ${middleware.regexp}`);
+    middleware.handle.stack.forEach((handler: any) => {
+      if (handler.route) {
+        console.log(`[App] ${handler.route.stack[0].method.toUpperCase()} ${handler.route.path}`);
+        console.log(`[App] Full path: ${middleware.regexp}${handler.route.path}`);
+      }
+    });
+  }
+});
 
 // 404 handler
 app.use((req, res) => {
   const message = `Route niet gevonden: ${req.method} ${req.url}`;
   console.log(`[${new Date().toISOString()}] 404 Not Found:`, message);
+  console.log('[404] Headers:', JSON.stringify(req.headers, null, 2));
+  console.log('[404] URL:', req.url);
+  console.log('[404] Method:', req.method);
+  console.log('[404] Path:', req.path);
+  console.log('[404] Query:', req.query);
   res.status(404).json({ message });
 });
 
@@ -56,7 +90,8 @@ app.use((err: Error, req: express.Request, res: express.Response, next: express.
     message: err.message,
     stack: err.stack,
     path: req.url,
-    method: req.method
+    method: req.method,
+    headers: req.headers
   });
   res.status(500).json({ message: 'Er is een fout opgetreden op de server' });
 });

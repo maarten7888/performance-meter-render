@@ -9,7 +9,8 @@
     "build": "tsc",
     "clean": "rimraf dist/",
     "prebuild": "npm run clean",
-    "postinstall": "npm run build"
+    "postinstall": "npm run build",
+    "migrate": "ts-node src/migrations/runner.ts"
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",
