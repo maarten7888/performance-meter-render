@@ -15,14 +15,7 @@ router.use((req, res, next) => {
 router.use(authenticateToken as RequestHandler);
 
 // Consultant routes
-router.get('/', (req, res, next) => {
-  console.log('[ConsultantRoutes] GET / - Fetching all consultants');
-  consultantController.getAllConsultants(req, res).catch(next);
-});
-
-router.put('/:id/target', (req, res, next) => {
-  console.log(`[ConsultantRoutes] PUT /${req.params.id}/target - Updating year target`);
-  consultantController.updateYearTarget(req, res).catch(next);
-});
+router.get('/', consultantController.getAllConsultants as RequestHandler);
+router.put('/:id/target', consultantController.updateYearTarget as RequestHandler);
 
 export default router; 
