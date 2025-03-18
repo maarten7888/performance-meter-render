@@ -1,7 +1,7 @@
 import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
-import { sequelize } from './config/database';
+import { pool } from './config/database';
 import authRoutes from './routes/authRoutes';
 import timeEntryRoutes from './routes/timeEntryRoutes';
 import consultantRoutes from './routes/consultantRoutes';
@@ -96,10 +96,10 @@ app.use((err: Error, req: express.Request, res: express.Response, next: express.
   res.status(500).json({ message: 'Er is een fout opgetreden op de server' });
 });
 
-// Database connection
-sequelize.sync()
+// Test database connection
+pool.query('SELECT 1')
   .then(() => {
-    console.log('[Database] Connected and synchronized');
+    console.log('[Database] Connected successfully');
   })
   .catch((error: Error) => {
     console.error('[Database] Connection error:', error);
