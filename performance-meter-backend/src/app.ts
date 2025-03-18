@@ -41,6 +41,42 @@ app.get('/', (req, res) => {
   res.json({ status: 'healthy', timestamp: new Date().toISOString() });
 });
 
+// Debug route
+app.get('/debug/routes', (req, res) => {
+  console.log('[Debug] Routes route aangeroepen');
+  const routes: any[] = [];
+  
+  app._router.stack.forEach((middleware: any) => {
+    if (middleware.route) {
+      routes.push({
+        type: 'direct',
+        path: middleware.route.path,
+        methods: middleware.route.methods
+      });
+    } else if (middleware.name === 'router') {
+      const baseRoute = middleware.regexp.toString().replace('/^\\', '').replace('\\/?(?=\\/|$)/i', '');
+      middleware.handle.stack.forEach((handler: any) => {
+        if (handler.route) {
+          routes.push({
+            type: 'router',
+            base: baseRoute,
+            path: handler.route.path,
+            method: handler.route.stack[0].method.toUpperCase(),
+            fullPath: `${baseRoute}${handler.route.path}`
+          });
+        }
+      });
+    } else {
+      routes.push({
+        type: 'middleware',
+        name: middleware.name
+      });
+    }
+  });
+  
+  res.json(routes);
+});
+
 console.log('[App] Routes registreren...');
 
 // API routes
