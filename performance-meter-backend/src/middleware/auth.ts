@@ -2,15 +2,18 @@ import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
 import { User } from '../models/User';
 
+// Type definitie voor de user in de request
+interface RequestUser {
+  id: number;
+  email: string;
+  role: string;
+}
+
 // Extend de Request interface om user property toe te voegen
 declare global {
   namespace Express {
     interface Request {
-      user?: {
-        id: number;
-        email: string;
-        role: string;
-      };
+      user?: RequestUser;
     }
   }
 }
