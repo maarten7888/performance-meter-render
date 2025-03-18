@@ -1,8 +1,7 @@
 import { Request, Response } from 'express';
 import { pool } from '../config/database';
 import jwt from 'jsonwebtoken';
-import bcrypt from 'bcryptjs';
-import { User } from '../models/User';
+import { User, validatePassword, hashPassword } from '../models/User';
 
 export class AuthController {
   public async login(req: Request, res: Response): Promise<void> {
@@ -30,8 +29,8 @@ export class AuthController {
         role: user.role
       });
 
-      // 2. Wachtwoord valideren
-      const validPassword = await bcrypt.compare(password, user.password);
+      // 2. Wachtwoord valideren met de helper functie
+      const validPassword = await validatePassword(user.password, password);
       if (!validPassword) {
         console.log('Debug: Ongeldig wachtwoord');
         res.status(401).json({ message: 'Ongeldige inloggegevens' });
@@ -94,9 +93,8 @@ export class AuthController {
         return;
       }
 
-      // Hash het wachtwoord
-      const salt = await bcrypt.genSalt(10);
-      const hashedPassword = await bcrypt.hash(password, salt);
+      // Hash het wachtwoord met de helper functie
+      const hashedPassword = await hashPassword(password);
 
       // Maak nieuwe gebruiker aan
       const [result] = await pool.query(
