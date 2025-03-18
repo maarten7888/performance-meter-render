@@ -1,61 +1,103 @@
-import { Model, DataTypes } from 'sequelize';
-import { sequelize } from '../config/database';
-import { User } from './User';
-import { Project } from './Project';
+import { pool } from '../config/database';
 
-export class TimeEntry extends Model {
-  public id!: number;
-  public userId!: number;
-  public projectId!: number;
-  public date!: Date;
-  public hours!: number;
-  public description!: string;
-  public readonly createdAt!: Date;
-  public readonly updatedAt!: Date;
+export interface TimeEntry {
+  id: number;
+  userId: number;
+  projectId: number;
+  date: Date;
+  hours: number;
+  description: string | null;
+  createdAt: Date;
+  updatedAt: Date;
 }
 
-TimeEntry.init(
-  {
-    id: {
-      type: DataTypes.INTEGER,
-      autoIncrement: true,
-      primaryKey: true,
-    },
-    userId: {
-      type: DataTypes.INTEGER,
-      allowNull: false,
-      references: {
-        model: User,
-        key: 'id',
-      },
-    },
-    projectId: {
-      type: DataTypes.INTEGER,
-      allowNull: false,
-      references: {
-        model: Project,
-        key: 'id',
-      },
-    },
-    date: {
-      type: DataTypes.DATE,
-      allowNull: false,
-    },
-    hours: {
-      type: DataTypes.FLOAT,
-      allowNull: false,
-    },
-    description: {
-      type: DataTypes.STRING,
-      allowNull: false,
-    },
-  },
-  {
-    sequelize,
-    tableName: 'time_entries',
-    timestamps: true,
-  }
-);
+export interface TimeEntryInput {
+  userId: number;
+  projectId: number;
+  date: Date;
+  hours: number;
+  description?: string;
+}
 
-TimeEntry.belongsTo(User, { foreignKey: 'userId' });
-TimeEntry.belongsTo(Project, { foreignKey: 'projectId' }); 
+export interface TimeEntryOutput extends Required<TimeEntry> {}
+
+export async function createTimeEntry(input: TimeEntryInput): Promise<TimeEntryOutput> {
+  const [result] = await pool.query(
+    'INSERT INTO time_entries (userId, projectId, date, hours, description) VALUES (?, ?, ?, ?, ?)',
+    [input.userId, input.projectId, input.date, input.hours, input.description]
+  );
+  
+  const id = (result as any).insertId;
+  return {
+    id,
+    ...input,
+    description: input.description || null,
+    createdAt: new Date(),
+    updatedAt: new Date()
+  };
+}
+
+export async function findTimeEntryById(id: number): Promise<TimeEntryOutput | null> {
+  const [entries] = await pool.query(
+    'SELECT * FROM time_entries WHERE id = ?',
+    [id]
+  );
+  
+  return (entries as any[])[0] || null;
+}
+
+export async function findTimeEntriesByUserId(userId: number): Promise<TimeEntryOutput[]> {
+  const [entries] = await pool.query(
+    'SELECT * FROM time_entries WHERE userId = ?',
+    [userId]
+  );
+  
+  return entries as TimeEntryOutput[];
+}
+
+export async function findTimeEntriesByProjectId(projectId: number): Promise<TimeEntryOutput[]> {
+  const [entries] = await pool.query(
+    'SELECT * FROM time_entries WHERE projectId = ?',
+    [projectId]
+  );
+  
+  return entries as TimeEntryOutput[];
+}
+
+export async function updateTimeEntry(id: number, input: Partial<TimeEntryInput>): Promise<void> {
+  const updates: string[] = [];
+  const values: any[] = [];
+  
+  if (input.date !== undefined) {
+    updates.push('date = ?');
+    values.push(input.date);
+  }
+  
+  if (input.hours !== undefined) {
+    updates.push('hours = ?');
+    values.push(input.hours);
+  }
+  
+  if (input.description !== undefined) {
+    updates.push('description = ?');
+    values.push(input.description);
+  }
+  
+  if (updates.length === 0) {
+    return;
+  }
+  
+  values.push(id);
+  
+  await pool.query(
+    `UPDATE time_entries SET ${updates.join(', ')}, updatedAt = NOW() WHERE id = ?`,
+    values
+  );
+}
+
+export async function deleteTimeEntry(id: number): Promise<void> {
+  await pool.query(
+    'DELETE FROM time_entries WHERE id = ?',
+    [id]
+  );
+} 
