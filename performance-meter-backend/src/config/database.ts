@@ -1,4 +1,3 @@
-import { Sequelize } from 'sequelize';
 import mysql from 'mysql2/promise';
 import dotenv from 'dotenv';
 
@@ -20,18 +19,6 @@ console.log('[Database] Connecting to:', {
   port: dbConfig.port,
   user: dbConfig.username,
   database: dbConfig.pathname.substr(1)
-});
-
-// Sequelize configuratie
-export const sequelize = new Sequelize(dbUrl, {
-  dialect: 'mysql',
-  dialectOptions: {
-    ssl: {
-      require: true,
-      rejectUnauthorized: false
-    }
-  },
-  logging: console.log
 });
 
 // MySQL pool configuratie

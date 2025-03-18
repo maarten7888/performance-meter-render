@@ -1,7 +1,8 @@
 import { Request, Response } from 'express';
-import { User } from '../models/User';
+import { pool } from '../config/database';
 import jwt from 'jsonwebtoken';
 import bcrypt from 'bcryptjs';
+import { User } from '../models/User';
 
 export class AuthController {
   public async login(req: Request, res: Response): Promise<void> {
@@ -10,10 +11,12 @@ export class AuthController {
       console.log('Debug: Login poging voor:', email);
 
       // 1. Gebruiker ophalen met alle benodigde velden
-      const user = await User.findOne({ 
-        where: { email },
-        attributes: ['id', 'email', 'password', 'role']
-      });
+      const [users] = await pool.query(
+        'SELECT id, email, password, role FROM users WHERE email = ?',
+        [email]
+      );
+
+      const user = (users as any[])[0];
 
       if (!user) {
         console.log('Debug: Gebruiker niet gevonden');
@@ -40,12 +43,12 @@ export class AuthController {
         id: user.id.toString(),
         email: user.email,
         name: user.email.split('@')[0],
-        role: user.role // Expliciet role toevoegen
+        role: user.role
       };
 
       // 4. JWT token maken
       const tokenPayload = {
-        id: user.id, // Gebruik 'id' in plaats van 'userId'
+        id: user.id,
         email: user.email,
         role: user.role
       };
@@ -80,17 +83,36 @@ export class AuthController {
     try {
       const { email, password } = req.body;
 
-      const existingUser = await User.findOne({ where: { email } });
-      if (existingUser) {
+      // Check of email al bestaat
+      const [existingUsers] = await pool.query(
+        'SELECT id FROM users WHERE email = ?',
+        [email]
+      );
+
+      if ((existingUsers as any[]).length > 0) {
         res.status(400).json({ message: 'Email is al in gebruik' });
         return;
       }
 
-      const user = await User.create({
-        email,
-        password,
-        role: 'user'
-      });
+      // Hash het wachtwoord
+      const salt = await bcrypt.genSalt(10);
+      const hashedPassword = await bcrypt.hash(password, salt);
+
+      // Maak nieuwe gebruiker aan
+      const [result] = await pool.query(
+        'INSERT INTO users (email, password, role) VALUES (?, ?, ?)',
+        [email, hashedPassword, 'user']
+      );
+
+      const userId = (result as any).insertId;
+
+      // Haal de nieuwe gebruiker op
+      const [users] = await pool.query(
+        'SELECT id, email, role FROM users WHERE id = ?',
+        [userId]
+      );
+
+      const user = (users as any[])[0];
 
       const userData = {
         id: user.id.toString(),
@@ -125,10 +147,12 @@ export class AuthController {
     try {
       console.log('Debug: Starting setupAdmin...');
       
-      const user = await User.findOne({
-        where: { email: 'maarten.jansen@tothepointcompany.nl' },
-        attributes: ['id', 'email', 'role']
-      });
+      const [users] = await pool.query(
+        'SELECT id, email, role FROM users WHERE email = ?',
+        ['maarten.jansen@tothepointcompany.nl']
+      );
+
+      const user = (users as any[])[0];
 
       if (!user) {
         console.log('Debug: User not found');
@@ -136,13 +160,17 @@ export class AuthController {
         return;
       }
 
-      await user.update({ role: 'admin' });
+      await pool.query(
+        'UPDATE users SET role = ? WHERE id = ?',
+        ['admin', user.id]
+      );
       
-      const updatedUser = await User.findOne({
-        where: { email: 'maarten.jansen@tothepointcompany.nl' },
-        attributes: ['id', 'email', 'role']
-      });
+      const [updatedUsers] = await pool.query(
+        'SELECT id, email, role FROM users WHERE id = ?',
+        [user.id]
+      );
       
+      const updatedUser = (updatedUsers as any[])[0];
       console.log('Debug: Updated user:', JSON.stringify(updatedUser, null, 2));
 
       res.json({ 

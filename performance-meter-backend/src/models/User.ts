@@ -2,7 +2,17 @@ import { Model, DataTypes } from 'sequelize';
 import { sequelize } from '../config/database';
 import bcrypt from 'bcryptjs';
 
-export class User extends Model {
+export interface User {
+  id: number;
+  email: string;
+  password: string;
+  yearlyTarget?: number;
+  role: 'admin' | 'user';
+  createdAt?: Date;
+  updatedAt?: Date;
+}
+
+export class UserModel extends Model {
   public id!: number;
   public email!: string;
   public password!: string;
@@ -16,7 +26,7 @@ export class User extends Model {
   }
 }
 
-User.init(
+UserModel.init(
   {
     id: {
       type: DataTypes.INTEGER,
@@ -50,13 +60,13 @@ User.init(
     tableName: 'users',
     timestamps: true,
     hooks: {
-      beforeCreate: async (user: User) => {
+      beforeCreate: async (user: UserModel) => {
         if (user.password) {
           const salt = await bcrypt.genSalt(10);
           user.password = await bcrypt.hash(user.password, salt);
         }
       },
-      beforeUpdate: async (user: User) => {
+      beforeUpdate: async (user: UserModel) => {
         if (user.changed('password')) {
           const salt = await bcrypt.genSalt(10);
           user.password = await bcrypt.hash(user.password, salt);
