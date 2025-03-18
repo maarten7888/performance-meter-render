@@ -2,15 +2,20 @@ import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
 import { User } from '../models/User';
 
-export interface AuthRequest extends Request {
-  user?: {
-    id: number;
-    email: string;
-    role: string;
-  };
+// Extend de Request interface om user property toe te voegen
+declare global {
+  namespace Express {
+    interface Request {
+      user?: {
+        id: number;
+        email: string;
+        role: string;
+      };
+    }
+  }
 }
 
-export const authenticateToken = async (req: AuthRequest, res: Response, next: NextFunction) => {
+export const authenticateToken = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const authHeader = req.headers['authorization'];
     const token = authHeader && authHeader.split(' ')[1];
@@ -27,28 +32,23 @@ export const authenticateToken = async (req: AuthRequest, res: Response, next: N
     console.log('Debug: Token inhoud:', decodedWithoutVerify);
     
     // Token verifiëren
-    const decoded = jwt.verify(token, process.env.JWT_SECRET as string) as { 
-      id: number; 
-      email: string; 
-      role: string 
-    };
+    const decoded = jwt.verify(token, process.env.JWT_SECRET!) as any;
     
     console.log('Debug: Geverifieerde token data:', decoded);
     
     // Controleer verplichte velden
-    if (!decoded.id || !decoded.email || !decoded.role) {
+    if (!decoded.userId || !decoded.email) {
       console.error('Debug: Ontbrekende verplichte velden in token:', {
-        hasId: !!decoded.id,
-        hasEmail: !!decoded.email,
-        hasRole: !!decoded.role
+        hasUserId: !!decoded.userId,
+        hasEmail: !!decoded.email
       });
       return res.status(401).json({ message: 'Ongeldig token formaat' });
     }
     
     // Gebruiker ophalen uit database
-    const user = await User.findByPk(decoded.id);
+    const user = await User.findByPk(decoded.userId);
     if (!user) {
-      console.log('Debug: Gebruiker niet gevonden in database voor id:', decoded.id);
+      console.log('Debug: Gebruiker niet gevonden in database voor id:', decoded.userId);
       return res.status(401).json({ message: 'Ongeldige gebruiker' });
     }
 
@@ -57,15 +57,6 @@ export const authenticateToken = async (req: AuthRequest, res: Response, next: N
       email: user.email,
       role: user.role
     });
-
-    // Verifieer dat de role in het token overeenkomt met de database
-    if (decoded.role !== user.role) {
-      console.error('Debug: Role mismatch:', { 
-        tokenRole: decoded.role, 
-        dbRole: user.role 
-      });
-      return res.status(401).json({ message: 'Ongeldige gebruiker rol' });
-    }
 
     // Gebruiker aan request toevoegen
     req.user = {
@@ -82,7 +73,7 @@ export const authenticateToken = async (req: AuthRequest, res: Response, next: N
   }
 };
 
-export const requireAdmin = async (req: AuthRequest, res: Response, next: NextFunction) => {
+export const requireAdmin = async (req: Request, res: Response, next: NextFunction) => {
   if (!req.user) {
     return res.status(401).json({ message: 'Niet geauthenticeerd' });
   }
