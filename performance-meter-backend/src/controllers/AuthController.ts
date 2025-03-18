@@ -47,7 +47,7 @@ export class AuthController {
 
       // 4. JWT token maken
       const tokenPayload = {
-        id: user.id,
+        userId: user.id,
         email: user.email,
         role: user.role
       };
@@ -120,7 +120,7 @@ export class AuthController {
       };
 
       const tokenPayload = {
-        id: user.id,
+        userId: user.id,
         email: user.email,
         role: user.role
       };
