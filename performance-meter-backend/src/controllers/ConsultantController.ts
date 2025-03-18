@@ -5,16 +5,17 @@ export class ConsultantController {
   // Haal alle consultants op
   public async getAllConsultants(req: Request, res: Response): Promise<void> {
     try {
+      console.log('[ConsultantController] Fetching all consultants');
       const consultants = await User.findAll({
         attributes: ['id', 'email', 'yearlyTarget'],
         where: {
           role: 'user'
         }
       });
-
+      console.log('[ConsultantController] Found consultants:', JSON.stringify(consultants, null, 2));
       res.json(consultants);
     } catch (error) {
-      console.error('Error fetching consultants:', error);
+      console.error('[ConsultantController] Error fetching consultants:', error);
       res.status(500).json({ message: 'Er is een fout opgetreden bij het ophalen van consultants' });
     }
   }
@@ -25,6 +26,7 @@ export class ConsultantController {
     const { yearTarget } = req.body;
 
     try {
+      console.log(`[ConsultantController] Updating year target for consultant ${id} to ${yearTarget}`);
       const consultant = await User.findOne({
         where: {
           id,
@@ -33,11 +35,13 @@ export class ConsultantController {
       });
 
       if (!consultant) {
+        console.log(`[ConsultantController] Consultant not found with id ${id}`);
         res.status(404).json({ message: 'Consultant niet gevonden' });
         return;
       }
 
       await consultant.update({ yearlyTarget: yearTarget });
+      console.log(`[ConsultantController] Successfully updated year target for consultant ${id}`);
       
       res.json({
         id: consultant.id,
@@ -45,7 +49,7 @@ export class ConsultantController {
         yearlyTarget: consultant.yearlyTarget
       });
     } catch (error) {
-      console.error('Error updating year target:', error);
+      console.error('[ConsultantController] Error updating year target:', error);
       res.status(500).json({ message: 'Er is een fout opgetreden bij het bijwerken van het jaartarget' });
     }
   }
