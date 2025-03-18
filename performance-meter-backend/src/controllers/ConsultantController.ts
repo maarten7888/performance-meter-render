@@ -4,15 +4,20 @@ import { User } from '../models/User';
 export class ConsultantController {
   // Haal alle consultants op
   public async getAllConsultants(req: Request, res: Response): Promise<void> {
+    console.log('[ConsultantController] getAllConsultants aangeroepen');
+    console.log('[ConsultantController] Request headers:', req.headers);
+    console.log('[ConsultantController] Request user:', (req as any).user);
+    
     try {
-      console.log('[ConsultantController] Fetching all consultants');
+      console.log('[ConsultantController] Start ophalen consultants');
       const consultants = await User.findAll({
         attributes: ['id', 'email', 'yearlyTarget'],
         where: {
           role: 'user'
         }
       });
-      console.log('[ConsultantController] Found consultants:', JSON.stringify(consultants, null, 2));
+      console.log('[ConsultantController] Aantal consultants gevonden:', consultants.length);
+      console.log('[ConsultantController] Consultants:', JSON.stringify(consultants, null, 2));
       res.json(consultants);
     } catch (error) {
       console.error('[ConsultantController] Error fetching consultants:', error);
@@ -25,8 +30,14 @@ export class ConsultantController {
     const { id } = req.params;
     const { yearTarget } = req.body;
 
+    console.log('[ConsultantController] updateYearTarget aangeroepen');
+    console.log('[ConsultantController] ID:', id);
+    console.log('[ConsultantController] YearTarget:', yearTarget);
+    console.log('[ConsultantController] Request headers:', req.headers);
+    console.log('[ConsultantController] Request user:', (req as any).user);
+
     try {
-      console.log(`[ConsultantController] Updating year target for consultant ${id} to ${yearTarget}`);
+      console.log(`[ConsultantController] Zoeken naar consultant met ID ${id}`);
       const consultant = await User.findOne({
         where: {
           id,
@@ -35,13 +46,14 @@ export class ConsultantController {
       });
 
       if (!consultant) {
-        console.log(`[ConsultantController] Consultant not found with id ${id}`);
+        console.log(`[ConsultantController] Consultant niet gevonden met ID ${id}`);
         res.status(404).json({ message: 'Consultant niet gevonden' });
         return;
       }
 
+      console.log(`[ConsultantController] Consultant gevonden:`, JSON.stringify(consultant.toJSON(), null, 2));
       await consultant.update({ yearlyTarget: yearTarget });
-      console.log(`[ConsultantController] Successfully updated year target for consultant ${id}`);
+      console.log(`[ConsultantController] Jaartarget succesvol bijgewerkt voor consultant ${id}`);
       
       res.json({
         id: consultant.id,
