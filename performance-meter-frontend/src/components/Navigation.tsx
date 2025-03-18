@@ -24,19 +24,16 @@ const Navigation = () => {
 
   const isActive = (path: string) => location.pathname === path;
 
-  // Alleen tonen als de gebruiker admin rechten heeft
-  const showManagement = user?.role === 'admin';
-
   return (
     <AppBar position="static" sx={{ bgcolor: 'rgba(255, 255, 255, 0.1)', boxShadow: 'none', mb: 2 }}>
       <Toolbar>
         <Box sx={{ flexGrow: 1, display: 'flex', gap: 2 }}>
           <Button
             color="inherit"
-            onClick={() => navigate('/dashboard' as string)}
+            onClick={() => navigate('/' as string)}
             sx={{
               color: 'white',
-              bgcolor: isActive('/dashboard') ? 'rgba(255, 255, 255, 0.1)' : 'transparent',
+              bgcolor: isActive('/') ? 'rgba(255, 255, 255, 0.1)' : 'transparent',
             }}
           >
             Dashboard
@@ -61,18 +58,16 @@ const Navigation = () => {
           >
             Urenregistratie
           </Button>
-          {showManagement && (
-            <Button
-              color="inherit"
-              onClick={() => navigate('/management' as string)}
-              sx={{
-                color: 'white',
-                bgcolor: isActive('/management') ? 'rgba(255, 255, 255, 0.1)' : 'transparent',
-              }}
-            >
-              Beheer
-            </Button>
-          )}
+          <Button
+            color="inherit"
+            onClick={() => navigate('/management' as string)}
+            sx={{
+              color: 'white',
+              bgcolor: isActive('/management') ? 'rgba(255, 255, 255, 0.1)' : 'transparent',
+            }}
+          >
+            Beheer
+          </Button>
         </Box>
         <Tooltip title="Uitloggen">
           <IconButton 

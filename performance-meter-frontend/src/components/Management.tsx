@@ -13,6 +13,7 @@ import {
   Typography,
   Box
 } from '@mui/material';
+import api from '../services/api';
 
 interface Consultant {
   id: number;
@@ -31,14 +32,12 @@ const Management = () => {
 
   const fetchConsultants = async () => {
     try {
-      const response = await fetch(`${process.env.REACT_APP_API_URL}/api/consultants`);
-      if (!response.ok) {
-        throw new Error('Kon consultant gegevens niet ophalen');
-      }
-      const data = await response.json();
+      const { data } = await api.get<Consultant[]>('/api/consultants');
       setConsultants(data);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Er is een fout opgetreden');
+      setError(null);
+    } catch (err: any) {
+      console.error('Error fetching consultants:', err);
+      setError(err.response?.data?.message || 'Er is een fout opgetreden bij het ophalen van consultants');
     } finally {
       setLoading(false);
     }
@@ -46,25 +45,19 @@ const Management = () => {
 
   const handleYearTargetUpdate = async (consultantId: number, newTarget: number) => {
     try {
-      const response = await fetch(`${process.env.REACT_APP_API_URL}/api/consultants/${consultantId}/target`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ yearTarget: newTarget }),
+      await api.put(`/api/consultants/${consultantId}/target`, {
+        yearTarget: newTarget
       });
-
-      if (!response.ok) {
-        throw new Error('Kon jaartarget niet bijwerken');
-      }
 
       setConsultants(consultants.map(consultant => 
         consultant.id === consultantId 
           ? { ...consultant, yearTarget: newTarget }
           : consultant
       ));
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Er is een fout opgetreden bij het bijwerken');
+      setError(null);
+    } catch (err: any) {
+      console.error('Error updating year target:', err);
+      setError(err.response?.data?.message || 'Er is een fout opgetreden bij het bijwerken');
     }
   };
 

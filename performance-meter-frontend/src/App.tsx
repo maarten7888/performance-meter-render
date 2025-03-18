@@ -90,7 +90,7 @@ function App() {
               </PrivateRoute>
             } />
             <Route path="/management" element={
-              <PrivateRoute requireAdmin>
+              <PrivateRoute>
                 <Layout>
                   <Management />
                 </Layout>

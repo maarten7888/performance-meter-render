@@ -43,6 +43,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
     { text: 'Dashboard', path: '/' },
     { text: 'Urenregistratie', path: '/time-registration' },
     { text: 'Projecten', path: '/projects' },
+    { text: 'Beheer', path: '/management' },
   ];
 
   const drawer = (

@@ -7,6 +7,7 @@ import Projects from './pages/Projects';
 import TimeRegistration from './pages/TimeRegistration';
 import Navigation from './components/Navigation';
 import PrivateRoute from './components/PrivateRoute';
+import Management from './pages/Management';
 
 const AppRoutes = () => {
   return (
@@ -28,6 +29,11 @@ const AppRoutes = () => {
         <Route path="/time-registration" element={
           <PrivateRoute>
             <TimeRegistration />
+          </PrivateRoute>
+        } />
+        <Route path="/management" element={
+          <PrivateRoute>
+            <Management />
           </PrivateRoute>
         } />
         <Route path="/" element={<Navigate to="/dashboard" replace />} />

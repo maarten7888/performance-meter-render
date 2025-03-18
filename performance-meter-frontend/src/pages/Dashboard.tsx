@@ -14,15 +14,20 @@ import {
 import api from '../services/api';
 import { styled } from '@mui/material/styles';
 
-ChartJS.register(
-  CategoryScale,
-  LinearScale,
-  PointElement,
-  LineElement,
-  Title,
-  Tooltip,
-  Legend
-);
+// Verplaats Chart.js registratie naar een try-catch block
+try {
+  ChartJS.register(
+    CategoryScale,
+    LinearScale,
+    PointElement,
+    LineElement,
+    Title,
+    Tooltip,
+    Legend
+  );
+} catch (error) {
+  console.error('Error registering Chart.js:', error);
+}
 
 const StyledPaper = styled(Paper)(({ theme }) => ({
   marginTop: theme.spacing(4),
@@ -49,12 +54,14 @@ const Dashboard: React.FC = () => {
   const [yearlyTarget, setYearlyTarget] = useState<YearlyTarget | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [isChartReady, setIsChartReady] = useState(false);
 
   useEffect(() => {
     const fetchDashboardData = async () => {
       try {
         setLoading(true);
         setError(null);
+        setIsChartReady(false);
 
         const [monthlyResponse, yearlyResponse] = await Promise.all([
           api.get<MonthlyData[]>('/api/time-entries/monthly-report'),
@@ -73,11 +80,9 @@ const Dashboard: React.FC = () => {
         
         setMonthlyData(monthlyResponse.data);
         setYearlyTarget(yearlyData);
+        setIsChartReady(true);
       } catch (error: any) {
         console.error('Error fetching dashboard data:', error);
-        console.error('Error response:', error.response);
-        console.error('Error status:', error.response?.status);
-        console.error('Error headers:', error.response?.headers);
         setError('Er is een fout opgetreden bij het ophalen van de dashboard gegevens');
       } finally {
         setLoading(false);
@@ -237,17 +242,21 @@ const Dashboard: React.FC = () => {
 
   if (loading) {
     return (
-      <Box display="flex" justifyContent="center" alignItems="center" minHeight="400px">
-        <CircularProgress />
-      </Box>
+      <Container maxWidth="lg">
+        <Box display="flex" justifyContent="center" alignItems="center" minHeight="400px">
+          <CircularProgress />
+        </Box>
+      </Container>
     );
   }
 
   if (error) {
     return (
-      <Box p={3}>
-        <Alert severity="error">{error}</Alert>
-      </Box>
+      <Container maxWidth="lg">
+        <Box p={3}>
+          <Alert severity="error">{error}</Alert>
+        </Box>
+      </Container>
     );
   }
 
@@ -272,30 +281,32 @@ const Dashboard: React.FC = () => {
               <Typography variant="h6" color="white" gutterBottom>
                 Voortgang Jaardoel
               </Typography>
-              {yearlyTarget && yearlyTarget.yearlyTarget && (
+              {yearlyTarget && (
                 <>
-                  <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
-                    <Typography color="white">
-                      €{yearlyTarget.currentAmount}
-                    </Typography>
-                    <Typography color="white">
-                      €{yearlyTarget.yearlyTarget.toLocaleString()}
-                    </Typography>
+                  <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+                    <Box sx={{ width: '100%', mr: 1 }}>
+                      <LinearProgress
+                        variant="determinate"
+                        value={Math.min(yearlyTarget.progressPercentage, 100)}
+                        sx={{
+                          height: 10,
+                          borderRadius: 5,
+                          backgroundColor: 'rgba(255, 255, 255, 0.1)',
+                          '& .MuiLinearProgress-bar': {
+                            backgroundColor: 'rgb(75, 192, 192)',
+                            borderRadius: 5,
+                          },
+                        }}
+                      />
+                    </Box>
+                    <Box sx={{ minWidth: 35 }}>
+                      <Typography variant="body2" color="white">
+                        {`${Math.round(yearlyTarget.progressPercentage)}%`}
+                      </Typography>
+                    </Box>
                   </Box>
-                  <LinearProgress 
-                    variant="determinate" 
-                    value={yearlyTarget.progressPercentage} 
-                    sx={{
-                      height: 10,
-                      borderRadius: 5,
-                      backgroundColor: 'rgba(255, 255, 255, 0.1)',
-                      '& .MuiLinearProgress-bar': {
-                        backgroundColor: 'rgb(75, 192, 192)',
-                      }
-                    }}
-                  />
-                  <Typography color="white" align="right" sx={{ mt: 1 }}>
-                    {yearlyTarget.progressPercentage.toFixed(1)}% behaald
+                  <Typography variant="body2" color="white">
+                    €{Number(yearlyTarget.currentAmount).toLocaleString()} / €{yearlyTarget.yearlyTarget.toLocaleString()}
                   </Typography>
                 </>
               )}
@@ -309,7 +320,7 @@ const Dashboard: React.FC = () => {
               <Typography variant="h6" color="white" gutterBottom>
                 Target Voorspelling
               </Typography>
-              {yearlyTarget && yearlyTarget.yearlyTarget && (
+              {yearlyTarget && (
                 <Grid container spacing={2}>
                   <Grid item xs={12}>
                     <Box sx={{ textAlign: 'center', mb: 2 }}>
@@ -351,7 +362,7 @@ const Dashboard: React.FC = () => {
         </Grid>
       </Grid>
 
-      <StyledPaper sx={{ mt: 3 }}>
+      <StyledPaper sx={{ mt: 6 }}>
         <Box height={400}>
           <Line options={chartOptions} data={chartData} />
         </Box>
