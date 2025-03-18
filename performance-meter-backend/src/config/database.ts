@@ -4,10 +4,23 @@ import dotenv from 'dotenv';
 
 dotenv.config();
 
-const dbUrl = process.env.DATABASE_URL || 'mysql://tothepoi_pm:63%401Cy9dz@mysql.tothepointcompany.nl:3306/tothepoi_performance_db';
+if (!process.env.DATABASE_URL) {
+  console.error('DATABASE_URL environment variable is not set');
+  process.exit(1);
+}
+
+const dbUrl = process.env.DATABASE_URL;
 
 // Parse database URL
 const dbConfig = new URL(dbUrl);
+
+// Log database connection details (zonder wachtwoord)
+console.log('[Database] Connecting to:', {
+  host: dbConfig.hostname,
+  port: dbConfig.port,
+  user: dbConfig.username,
+  database: dbConfig.pathname.substr(1)
+});
 
 // Sequelize configuratie
 export const sequelize = new Sequelize(dbUrl, {
@@ -18,7 +31,7 @@ export const sequelize = new Sequelize(dbUrl, {
       rejectUnauthorized: false
     }
   },
-  logging: false
+  logging: console.log
 });
 
 // MySQL pool configuratie
