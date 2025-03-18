@@ -8,6 +8,7 @@ const consultantController = new ConsultantController();
 // Debug middleware voor consultant routes
 router.use((req, res, next) => {
   console.log(`[ConsultantRoutes] ${req.method} ${req.url}`);
+  console.log('[ConsultantRoutes] Headers:', req.headers);
   next();
 });
 
