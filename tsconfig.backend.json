@@ -21,7 +21,9 @@
     "src/middleware/**/*",
     "src/config/**/*",
     "src/types/**/*",
-    "src/lib/**/*"
+    "src/lib/**/*",
+    "src/controllers/**/*",
+    "src/models/**/*"
   ],
   "exclude": ["node_modules", "dist", "src/App.tsx", "src/index.tsx", "src/pages/**/*", "src/contexts/**/*"]
 } 
