@@ -105,6 +105,18 @@ app.use('/api/users', userRoutes);
 // Direct register user management endpoints without router layer
 const directUserController = new UserManagementController();
 
+// Super simple mock endpoint that doesn't use the database
+app.get('/api/mock/users', (req, res) => {
+  console.log('[Mock] Mock users endpoint aangeroepen');
+  res.json({
+    users: [
+      { id: 1, email: 'test1@example.com', yearlyTarget: 1000 },
+      { id: 2, email: 'test2@example.com', yearlyTarget: 1500 },
+      { id: 3, email: 'test3@example.com', yearlyTarget: 2000 }
+    ]
+  });
+});
+
 // Public test endpoint
 app.get('/api/user-management-test', (req, res) => {
   console.log('[Public Test] User management test endpoint aangeroepen');
