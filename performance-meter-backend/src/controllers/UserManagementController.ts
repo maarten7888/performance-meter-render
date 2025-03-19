@@ -1,12 +1,14 @@
-import { Request, Response } from 'express';
+import { Response } from 'express';
+import { AuthRequest } from '../middleware/auth';
 import { pool } from '../config/database';
 
 export class UserManagementController {
   // Haal alle gebruikers op met hun jaartargets
-  public async getAllUsers(req: Request, res: Response): Promise<void> {
+  public async getAllUsers(req: AuthRequest, res: Response): Promise<void> {
     try {
       console.log('Debug: getAllUsers aangeroepen');
       console.log('Debug: Request headers:', req.headers);
+      console.log('Debug: Authenticated user:', req.user);
 
       const [users] = await pool.query(
         'SELECT id, email, yearlyTarget FROM users ORDER BY email'
@@ -21,13 +23,14 @@ export class UserManagementController {
   }
 
   // Update het jaartarget van een specifieke gebruiker
-  public async updateYearlyTarget(req: Request, res: Response): Promise<void> {
+  public async updateYearlyTarget(req: AuthRequest, res: Response): Promise<void> {
     try {
       const { userId } = req.params;
       const { yearlyTarget } = req.body;
 
       console.log('Debug: updateYearlyTarget aangeroepen', { userId, yearlyTarget });
       console.log('Debug: Request headers:', req.headers);
+      console.log('Debug: Authenticated user:', req.user);
 
       if (yearlyTarget === undefined || yearlyTarget === null) {
         console.log('Debug: Jaartarget ontbreekt in request');
@@ -49,12 +52,13 @@ export class UserManagementController {
   }
 
   // Haal het jaartarget op van een specifieke gebruiker
-  public async getUserYearlyTarget(req: Request, res: Response): Promise<void> {
+  public async getUserYearlyTarget(req: AuthRequest, res: Response): Promise<void> {
     try {
       const { userId } = req.params;
 
       console.log('Debug: getUserYearlyTarget aangeroepen voor gebruiker:', userId);
       console.log('Debug: Request headers:', req.headers);
+      console.log('Debug: Authenticated user:', req.user);
 
       const [users] = await pool.query(
         'SELECT yearlyTarget FROM users WHERE id = ?',
