@@ -10,7 +10,7 @@ export class ConsultantController {
     this.test = this.test.bind(this);
   }
 
-  // Test route
+  // Test route - voor debugging doeleinden
   public async test(req: AuthRequest, res: Response): Promise<void> {
     try {
       res.json({ message: 'Hello World' });
