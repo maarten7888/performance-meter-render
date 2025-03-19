@@ -5,10 +5,14 @@ export class UserManagementController {
   // Haal alle gebruikers op met hun jaartargets
   public async getAllUsers(req: Request, res: Response): Promise<void> {
     try {
+      console.log('Debug: getAllUsers aangeroepen');
+      console.log('Debug: Request headers:', req.headers);
+
       const [users] = await pool.query(
         'SELECT id, email, yearlyTarget FROM users ORDER BY email'
       );
       
+      console.log('Debug: Users opgehaald uit database:', users);
       res.json({ users });
     } catch (error) {
       console.error('Error fetching users:', error);
@@ -22,7 +26,11 @@ export class UserManagementController {
       const { userId } = req.params;
       const { yearlyTarget } = req.body;
 
+      console.log('Debug: updateYearlyTarget aangeroepen', { userId, yearlyTarget });
+      console.log('Debug: Request headers:', req.headers);
+
       if (yearlyTarget === undefined || yearlyTarget === null) {
+        console.log('Debug: Jaartarget ontbreekt in request');
         res.status(400).json({ message: 'Jaartarget is verplicht' });
         return;
       }
@@ -32,6 +40,7 @@ export class UserManagementController {
         [yearlyTarget, userId]
       );
 
+      console.log('Debug: Jaartarget bijgewerkt voor gebruiker:', userId);
       res.json({ message: 'Jaartarget succesvol bijgewerkt' });
     } catch (error) {
       console.error('Error updating yearly target:', error);
@@ -44,16 +53,21 @@ export class UserManagementController {
     try {
       const { userId } = req.params;
 
+      console.log('Debug: getUserYearlyTarget aangeroepen voor gebruiker:', userId);
+      console.log('Debug: Request headers:', req.headers);
+
       const [users] = await pool.query(
         'SELECT yearlyTarget FROM users WHERE id = ?',
         [userId]
       );
 
       if ((users as any[]).length === 0) {
+        console.log('Debug: Gebruiker niet gevonden:', userId);
         res.status(404).json({ message: 'Gebruiker niet gevonden' });
         return;
       }
 
+      console.log('Debug: Jaartarget opgehaald voor gebruiker:', userId);
       res.json({ yearlyTarget: (users as any[])[0].yearlyTarget });
     } catch (error) {
       console.error('Error fetching yearly target:', error);
