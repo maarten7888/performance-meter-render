@@ -9,6 +9,11 @@ interface RequestUser {
   role: string;
 }
 
+// AuthRequest interface voor gebruik in controllers
+export interface AuthRequest extends Request {
+  user?: RequestUser;
+}
+
 // Extend de Request interface om user property toe te voegen
 declare global {
   namespace Express {

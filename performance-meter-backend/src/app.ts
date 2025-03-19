@@ -4,7 +4,6 @@ import dotenv from 'dotenv';
 import { pool } from './config/database';
 import authRoutes from './routes/authRoutes';
 import timeEntryRoutes from './routes/timeEntryRoutes';
-import consultantRoutes from './routes/consultantRoutes';
 
 dotenv.config();
 
@@ -85,9 +84,6 @@ app.use('/api/auth', authRoutes);
 
 console.log('[App] Time entry routes registreren...');
 app.use('/api/time-entries', timeEntryRoutes);
-
-console.log('[App] Consultant routes registreren...');
-app.use('/api/consultants', consultantRoutes);
 
 console.log('[App] Alle routes zijn geregistreerd');
 
