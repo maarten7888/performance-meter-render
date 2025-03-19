@@ -12,7 +12,12 @@ const app = express();
 
 // CORS configuratie
 const corsOptions = {
-  origin: ['https://pm.tothepointcompany.nl', 'http://localhost:3000'],
+  origin: [
+    'https://pm.tothepointcompany.nl',
+    'http://localhost:3000',
+    'https://performance-meter-render-6i1b.onrender.com',
+    'https://performance-meter.vercel.app'
+  ],
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
   credentials: true
@@ -87,7 +92,7 @@ console.log('[App] Time entry routes registreren...');
 app.use('/api/time-entries', timeEntryRoutes);
 
 console.log('[App] User management routes registreren...');
-app.use('/api/user-management', userManagementRoutes);
+app.use('/user-management', userManagementRoutes);
 
 console.log('[App] Alle routes zijn geregistreerd');
 
