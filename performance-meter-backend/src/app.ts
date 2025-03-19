@@ -6,7 +6,6 @@ import authRoutes from './routes/authRoutes';
 import timeEntryRoutes from './routes/timeEntryRoutes';
 import userManagementRoutes from './routes/userManagementRoutes';
 import userRoutes from './routes/userRoutes';
-import { UserManagementController } from './controllers/UserManagementController';
 import path from 'path';
 
 dotenv.config();
@@ -74,39 +73,6 @@ app.get('/all-routes', (req, res) => {
   });
 });
 
-// Simple mock data route
-app.get('/api/mock/users', (req, res) => {
-  console.log('[Mock] Mock users endpoint aangeroepen');
-  res.json({
-    users: [
-      { id: 1, email: 'test1@example.com', yearlyTarget: 1000 },
-      { id: 2, email: 'test2@example.com', yearlyTarget: 1500 },
-      { id: 3, email: 'test3@example.com', yearlyTarget: 2000 }
-    ]
-  });
-});
-
-// ======== USER MANAGEMENT DIRECT ROUTES =========
-const directUserController = new UserManagementController();
-
-// All users route (no auth)
-app.get('/api/user-management/users', (req, res) => {
-  console.log('[Direct] Get users endpoint aangeroepen');
-  directUserController.getAllUsers(req, res);
-});
-
-// Update target (no auth)
-app.put('/api/user-management/users/:userId/yearly-target', (req, res) => {
-  console.log('[Direct] Update target endpoint aangeroepen');
-  directUserController.updateYearlyTarget(req, res);
-});
-
-// Get target (no auth)
-app.get('/api/user-management/users/:userId/yearly-target', (req, res) => {
-  console.log('[Direct] Get target endpoint aangeroepen');
-  directUserController.getUserYearlyTarget(req, res);
-});
-
 // ======== ROUTER REGISTRATION =========
 
 // API routes
@@ -118,6 +84,9 @@ app.use('/api/time-entries', timeEntryRoutes);
 
 console.log('[App] User routes registreren...');
 app.use('/api/users', userRoutes);
+
+console.log('[App] User management routes registreren...');
+app.use('/api/user-management', userManagementRoutes);
 
 // Logging middleware - must appear after route registration
 app.use((req, res, next) => {
