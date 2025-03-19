@@ -5,25 +5,20 @@ import { authenticateToken } from '../middleware/auth';
 const router: Router = express.Router();
 const userManagementController = new UserManagementController();
 
-// Debug middleware voor alle routes
+// Debug middleware
 router.use((req, res, next) => {
-  console.log(`[UserManagement] ${req.method} ${req.path}`);
-  console.log('[UserManagement] Full path:', req.originalUrl);
-  console.log('[UserManagement] Headers:', JSON.stringify(req.headers, null, 2));
+  console.log(`UserManagement Route: ${req.method} ${req.path}`);
   next();
 });
 
 // Alle routes vereisen authenticatie
 router.use(authenticateToken as express.RequestHandler);
 
-// Routes voor gebruikersbeheer
-// GET /api/user-management/users
+// Basis routes
 router.get('/users', userManagementController.getAllUsers as express.RequestHandler);
 
-// PUT /api/user-management/users/:userId/yearly-target
+// Jaartarget routes
 router.put('/users/:userId/yearly-target', userManagementController.updateYearlyTarget as express.RequestHandler);
-
-// GET /api/user-management/users/:userId/yearly-target
 router.get('/users/:userId/yearly-target', userManagementController.getUserYearlyTarget as express.RequestHandler);
 
 export default router; 
