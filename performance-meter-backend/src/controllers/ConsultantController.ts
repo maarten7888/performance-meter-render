@@ -7,6 +7,17 @@ export class ConsultantController {
     // Bind de methoden aan de class instance
     this.getAllConsultants = this.getAllConsultants.bind(this);
     this.updateYearTarget = this.updateYearTarget.bind(this);
+    this.test = this.test.bind(this);
+  }
+
+  // Test route
+  public async test(req: AuthRequest, res: Response): Promise<void> {
+    try {
+      res.json({ message: 'Hello World' });
+    } catch (error) {
+      console.error('Error in test route:', error);
+      res.status(500).json({ message: 'Error in test route' });
+    }
   }
 
   // Haal alle consultants op

@@ -25,6 +25,13 @@ router.use(authenticateToken as RequestHandler);
 console.log('[ConsultantRoutes] Auth middleware geregistreerd');
 
 // Consultant routes
+router.get('/test', (req, res) => {
+  console.log('[ConsultantRoutes] GET /test route aangeroepen');
+  return consultantController.test(req, res);
+});
+
+console.log('[ConsultantRoutes] GET /test route geregistreerd');
+
 router.get('/', (req, res) => {
   console.log('[ConsultantRoutes] GET / route aangeroepen');
   console.log('[ConsultantRoutes] Request user:', req.user);
