@@ -6,6 +6,7 @@ import authRoutes from './routes/authRoutes';
 import timeEntryRoutes from './routes/timeEntryRoutes';
 import userManagementRoutes from './routes/userManagementRoutes';
 import userRoutes from './routes/userRoutes';
+import { UserManagementController } from './controllers/UserManagementController';
 
 dotenv.config();
 
@@ -100,6 +101,31 @@ app.use('/api/time-entries', timeEntryRoutes);
 
 console.log('[App] User routes registreren...');
 app.use('/api/users', userRoutes);
+
+// Direct register user management endpoints without router layer
+const directUserController = new UserManagementController();
+
+// Public test endpoint
+app.get('/api/user-management-test', (req, res) => {
+  console.log('[Public Test] User management test endpoint aangeroepen');
+  res.json({ message: 'Public test endpoint works!', timestamp: new Date().toISOString() });
+});
+
+// Direct user management endpoints (no authentication for testing)
+app.get('/api/user-management-direct/users', (req, res) => {
+  console.log('[Direct] Get all users endpoint aangeroepen');
+  directUserController.getAllUsers(req, res);
+});
+
+app.put('/api/user-management-direct/users/:userId/yearly-target', (req, res) => {
+  console.log('[Direct] Update yearly target endpoint aangeroepen');
+  directUserController.updateYearlyTarget(req, res);
+});
+
+app.get('/api/user-management-direct/users/:userId/yearly-target', (req, res) => {
+  console.log('[Direct] Get yearly target endpoint aangeroepen');
+  directUserController.getUserYearlyTarget(req, res);
+});
 
 // Directe test route voor user management
 app.get('/api/user-management/test', (req, res) => {
