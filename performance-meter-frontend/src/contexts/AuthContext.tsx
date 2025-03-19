@@ -17,6 +17,7 @@ interface AuthContextType {
     user: User | null;
     loading: boolean;
     isAuthenticated: boolean;
+    token: string | null;
     login: (email: string, password: string) => Promise<void>;
     logout: () => void;
     register: (email: string, password: string, name: string) => Promise<void>;
@@ -27,13 +28,15 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
     const [user, setUser] = useState<User | null>(null);
     const [loading, setLoading] = useState(true);
+    const [token, setToken] = useState<string | null>(null);
 
     useEffect(() => {
         const initAuth = async () => {
-            const token = localStorage.getItem('token');
-            if (token) {
+            const storedToken = localStorage.getItem('token');
+            if (storedToken) {
                 try {
-                    api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+                    setToken(storedToken);
+                    api.defaults.headers.common['Authorization'] = `Bearer ${storedToken}`;
                     const response = await api.get<{ user: User }>('/api/users/me');
                     setUser(response.data.user);
                 } catch (error) {
@@ -41,6 +44,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                     localStorage.removeItem('token');
                     delete api.defaults.headers.common['Authorization'];
                     setUser(null);
+                    setToken(null);
                 } finally {
                     setLoading(false);
                 }
@@ -56,11 +60,12 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         try {
             const response = await api.post<AuthResponse>('/api/auth/login', { email, password });
             console.log('Login response:', response.data);
-            const { token, user: userData } = response.data;
+            const { token: newToken, user: userData } = response.data;
             console.log('User data from login:', userData);
-            localStorage.setItem('token', token);
-            api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+            localStorage.setItem('token', newToken);
+            api.defaults.headers.common['Authorization'] = `Bearer ${newToken}`;
             setUser(userData);
+            setToken(newToken);
         } catch (error: any) {
             if (error.response) {
                 if (error.response.status === 401) {
@@ -76,15 +81,17 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         localStorage.removeItem('token');
         delete api.defaults.headers.common['Authorization'];
         setUser(null);
+        setToken(null);
     };
 
     const register = async (email: string, password: string, name: string) => {
         try {
             const response = await api.post<AuthResponse>('/api/auth/register', { email, password, name });
-            const { token, user: userData } = response.data;
-            localStorage.setItem('token', token);
-            api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+            const { token: newToken, user: userData } = response.data;
+            localStorage.setItem('token', newToken);
+            api.defaults.headers.common['Authorization'] = `Bearer ${newToken}`;
             setUser(userData);
+            setToken(newToken);
         } catch (error: any) {
             if (error.response) {
                 if (error.response.status === 400) {
@@ -96,15 +103,18 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         }
     };
 
+    const value = {
+        user,
+        loading,
+        isAuthenticated: !!user,
+        token,
+        login,
+        logout,
+        register
+    };
+
     return (
-        <AuthContext.Provider value={{ 
-            user, 
-            loading, 
-            isAuthenticated: !!user,
-            login, 
-            logout, 
-            register 
-        }}>
+        <AuthContext.Provider value={value}>
             {children}
         </AuthContext.Provider>
     );

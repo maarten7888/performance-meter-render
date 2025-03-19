@@ -5,9 +5,9 @@ import Register from './pages/Register';
 import Dashboard from './pages/Dashboard';
 import Projects from './pages/Projects';
 import TimeRegistration from './pages/TimeRegistration';
+import UserManagement from './pages/UserManagement';
 import Navigation from './components/Navigation';
 import PrivateRoute from './components/PrivateRoute';
-import Management from './pages/Management';
 
 const AppRoutes = () => {
   return (
@@ -31,11 +31,7 @@ const AppRoutes = () => {
             <TimeRegistration />
           </PrivateRoute>
         } />
-        <Route path="/management" element={
-          <PrivateRoute>
-            <Management />
-          </PrivateRoute>
-        } />
+        <Route path="/user-management" element={<UserManagement />} />
         <Route path="/" element={<Navigate to="/dashboard" replace />} />
       </Routes>
     </>

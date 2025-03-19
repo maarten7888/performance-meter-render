@@ -7,7 +7,7 @@ import LoginPage from './pages/LoginPage';
 import TimeRegistration from './pages/TimeRegistration';
 import Projects from './pages/Projects';
 import Dashboard from './pages/Dashboard';
-import Management from './pages/Management';
+import UserManagement from './pages/UserManagement';
 import Layout from './components/Layout';
 
 // Import Montserrat font
@@ -89,10 +89,10 @@ function App() {
                 </Layout>
               </PrivateRoute>
             } />
-            <Route path="/management" element={
+            <Route path="/user-management" element={
               <PrivateRoute>
                 <Layout>
-                  <Management />
+                  <UserManagement />
                 </Layout>
               </PrivateRoute>
             } />

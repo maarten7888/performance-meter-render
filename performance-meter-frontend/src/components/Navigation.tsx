@@ -60,13 +60,13 @@ const Navigation = () => {
           </Button>
           <Button
             color="inherit"
-            onClick={() => navigate('/management' as string)}
+            onClick={() => navigate('/user-management' as string)}
             sx={{
               color: 'white',
-              bgcolor: isActive('/management') ? 'rgba(255, 255, 255, 0.1)' : 'transparent',
+              bgcolor: isActive('/user-management') ? 'rgba(255, 255, 255, 0.1)' : 'transparent',
             }}
           >
-            Beheer
+            Gebruikersbeheer
           </Button>
         </Box>
         <Tooltip title="Uitloggen">
