@@ -92,7 +92,7 @@ console.log('[App] Time entry routes registreren...');
 app.use('/api/time-entries', timeEntryRoutes);
 
 console.log('[App] User management routes registreren...');
-app.use('/user-management', userManagementRoutes);
+app.use('/api/user-management', userManagementRoutes);
 
 console.log('[App] Alle routes zijn geregistreerd');
 
