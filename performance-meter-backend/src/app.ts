@@ -42,6 +42,9 @@ app.use(express.urlencoded({ extended: true }));
 app.use((req, res, next) => {
   console.log(`[${new Date().toISOString()}] ${req.method} ${req.url}`);
   console.log('[Debug] Headers:', JSON.stringify(req.headers, null, 2));
+  console.log('[Debug] Path:', req.path);
+  console.log('[Debug] Base URL:', req.baseUrl);
+  console.log('[Debug] Original URL:', req.originalUrl);
   if (req.body && Object.keys(req.body).length > 0) {
     console.log('[Debug] Body:', JSON.stringify(req.body, null, 2));
   }
@@ -76,6 +79,9 @@ app.get('/all-routes', (req, res) => {
 // ======== ROUTER REGISTRATION =========
 
 // API routes
+console.log('[App] Routes registreren...');
+console.log('[App] Base URL:', '/api');
+
 console.log('[App] Auth routes registreren...');
 app.use('/api/auth', authRoutes);
 
@@ -91,6 +97,8 @@ app.use('/api/user-management', userManagementRoutes);
 // Logging middleware - must appear after route registration
 app.use((req, res, next) => {
   console.log(`[Post-Registration] ${req.method} ${req.path} reached`);
+  console.log('[Post-Registration] Base URL:', req.baseUrl);
+  console.log('[Post-Registration] Original URL:', req.originalUrl);
   // Continue down the middleware chain
   next();
 });
