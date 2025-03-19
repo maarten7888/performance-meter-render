@@ -20,4 +20,5 @@ services:
       - key: JWT_SECRET
         value: ttpc_performance_meter_secret_key
       - key: PORT
-        value: 3000 
+        value: 3000
+    # Force new deployment 
