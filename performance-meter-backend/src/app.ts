@@ -5,6 +5,7 @@ import { pool } from './config/database';
 import authRoutes from './routes/authRoutes';
 import timeEntryRoutes from './routes/timeEntryRoutes';
 import userManagementRoutes from './routes/userManagementRoutes';
+import userRoutes from './routes/userRoutes';
 
 dotenv.config();
 
@@ -38,6 +39,12 @@ app.use((req, res, next) => {
     console.log('[Debug] Body:', JSON.stringify(req.body, null, 2));
   }
   next();
+});
+
+// Nieuwe test route om te verifiëren dat routes werken
+app.get('/api/test', (req, res) => {
+  console.log('[Test] Route aangeroepen');
+  res.json({ status: 'ok', message: 'Test route werkt correct', timestamp: new Date().toISOString() });
 });
 
 // Health check route
@@ -90,6 +97,15 @@ app.use('/api/auth', authRoutes);
 
 console.log('[App] Time entry routes registreren...');
 app.use('/api/time-entries', timeEntryRoutes);
+
+console.log('[App] User routes registreren...');
+app.use('/api/users', userRoutes);
+
+// Directe test route voor user management
+app.get('/api/user-management/test', (req, res) => {
+  console.log('[UserManagement Test] Route aangeroepen');
+  res.json({ status: 'ok', message: 'User management test route werkt correct' });
+});
 
 console.log('[App] User management routes registreren...');
 app.use('/api/user-management', userManagementRoutes);
