@@ -8,6 +8,27 @@ const port = process.env.PORT || 3000;
 console.log('[Server] Starting server...');
 console.log(`[Server] Environment: ${process.env.NODE_ENV}`);
 console.log(`[Server] Port: ${port}`);
+console.log(`[Server] Current directory: ${process.cwd()}`);
+console.log(`[Server] Node version: ${process.version}`);
+console.log(`[Server] Platform: ${process.platform}`);
+
+// Log all express route middleware
+console.log('[Server] Express app middleware:');
+app._router.stack.forEach((middleware: any, i: number) => {
+  console.log(`[Server] Middleware ${i}: ${middleware.name}`);
+  if (middleware.route) {
+    console.log(`[Server] Route: ${middleware.route.path}`);
+  } else if (middleware.name === 'router') {
+    console.log(`[Server] Router base path: ${middleware.regexp}`);
+    middleware.handle.stack.forEach((handler: any, j: number) => {
+      if (handler.route) {
+        console.log(`[Server] Router route ${j}: ${handler.route.path}`);
+        console.log(`[Server] Full path: ${middleware.regexp}${handler.route.path}`);
+        console.log(`[Server] Methods: ${Object.keys(handler.route.methods).join(', ')}`);
+      }
+    });
+  }
+});
 
 // Global error handlers
 process.on('uncaughtException', (error: Error) => {

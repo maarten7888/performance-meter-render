@@ -1,4 +1,5 @@
 import api from './api';
+import mockUsers from '../mocks/users.json';
 
 export interface User {
   id: number;
@@ -14,22 +15,20 @@ interface YearlyTargetResponse {
   yearlyTarget: number | null;
 }
 
-// Gebruik mock endpoint voor debugging
-const USE_MOCK_ENDPOINT = true;
-const USE_DIRECT_ENDPOINTS = false;
-
-// Pad kiezer
-let BASE_PATH = '/api/user-management';
-if (USE_MOCK_ENDPOINT) {
-  BASE_PATH = '/api/mock';
-} else if (USE_DIRECT_ENDPOINTS) {
-  BASE_PATH = '/api/user-management-direct';
-}
+// Gebruik lokaal JSON bestand in plaats van API calls
+const USE_LOCAL_MOCK = true;
 
 export const userManagementService = {
   getAllUsers: async (): Promise<User[]> => {
     try {
-      const endpoint = `${BASE_PATH}/users`;
+      // Gebruik lokaal JSON bestand
+      if (USE_LOCAL_MOCK) {
+        console.log('Debug: [LOCAL MOCK] Using local mock data');
+        return Promise.resolve(mockUsers.users);
+      }
+      
+      // Gebruik API
+      const endpoint = '/api/user-management/users';
       console.log('Debug: Fetching users from:', endpoint);
       
       const response = await api.get<ApiResponse>(endpoint);
@@ -44,13 +43,15 @@ export const userManagementService = {
 
   updateYearlyTarget: async (userId: number, yearlyTarget: number): Promise<void> => {
     try {
-      // Als we mock data gebruiken, simuleren we een succesvolle update
-      if (USE_MOCK_ENDPOINT) {
-        console.log('Debug: [MOCK] Updating yearly target:', { userId, yearlyTarget });
+      // Gebruik lokaal mock
+      if (USE_LOCAL_MOCK) {
+        console.log('Debug: [LOCAL MOCK] Updating yearly target:', { userId, yearlyTarget });
+        // Zoek de gebruiker in het lokale JSON bestand en update de waarde (bij echte implementatie)
         return Promise.resolve();
       }
       
-      const endpoint = `${BASE_PATH}/users/${userId}/yearly-target`;
+      // Gebruik API
+      const endpoint = `/api/user-management/users/${userId}/yearly-target`;
       console.log('Debug: Updating yearly target:', { userId, yearlyTarget, endpoint });
       
       await api.put(endpoint, {
@@ -65,13 +66,15 @@ export const userManagementService = {
 
   getUserYearlyTarget: async (userId: number): Promise<number | null> => {
     try {
-      // Als we mock data gebruiken, retourneren we een vaste waarde
-      if (USE_MOCK_ENDPOINT) {
-        console.log('Debug: [MOCK] Getting yearly target for user:', userId);
-        return Promise.resolve(1000 * userId);
+      // Gebruik lokaal mock
+      if (USE_LOCAL_MOCK) {
+        console.log('Debug: [LOCAL MOCK] Getting yearly target for user:', userId);
+        const user = mockUsers.users.find(u => u.id === userId);
+        return Promise.resolve(user?.yearlyTarget || null);
       }
       
-      const endpoint = `${BASE_PATH}/users/${userId}/yearly-target`;
+      // Gebruik API
+      const endpoint = `/api/user-management/users/${userId}/yearly-target`;
       console.log('Debug: Fetching yearly target for user:', userId, 'from endpoint:', endpoint);
       
       const response = await api.get<YearlyTargetResponse>(endpoint);

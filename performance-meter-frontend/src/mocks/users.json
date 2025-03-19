@@ -1,0 +1,9 @@
+{
+  "users": [
+    { "id": 1, "email": "maarten.jansen@tothepointcompany.nl", "yearlyTarget": 1800 },
+    { "id": 2, "email": "peter.vos@tothepointcompany.nl", "yearlyTarget": 1600 },
+    { "id": 3, "email": "jan.klaassen@tothepointcompany.nl", "yearlyTarget": 1500 },
+    { "id": 4, "email": "developer@tothepointcompany.nl", "yearlyTarget": 1400 },
+    { "id": 5, "email": "consultant@tothepointcompany.nl", "yearlyTarget": 1700 }
+  ]
+} 

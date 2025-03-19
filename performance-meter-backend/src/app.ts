@@ -167,6 +167,64 @@ app._router.stack.forEach((middleware: any) => {
   }
 });
 
+// Super simple root route with all routes listed
+app.get('/all-routes', (req, res) => {
+  console.log('[Diagnostics] All routes endpoint aangeroepen');
+  
+  const routes: any[] = [];
+  
+  app._router.stack.forEach((middleware: any) => {
+    if (middleware.route) {
+      routes.push({
+        type: 'direct',
+        path: middleware.route.path,
+        methods: Object.keys(middleware.route.methods)
+      });
+    } else if (middleware.name === 'router') {
+      const baseRoute = middleware.regexp.toString().replace('/^\\', '').replace('\\/?(?=\\/|$)/i', '');
+      try {
+        middleware.handle.stack.forEach((handler: any) => {
+          if (handler.route) {
+            routes.push({
+              type: 'router',
+              base: baseRoute,
+              path: handler.route.path,
+              method: handler.route.stack[0].method.toUpperCase(),
+              fullPath: `${baseRoute}${handler.route.path}`
+            });
+          }
+        });
+      } catch (error: any) {
+        routes.push({
+          type: 'router_error',
+          base: baseRoute,
+          error: error.message
+        });
+      }
+    } else {
+      routes.push({
+        type: 'middleware',
+        name: middleware.name
+      });
+    }
+  });
+  
+  // Also show environment
+  const environment = {
+    NODE_ENV: process.env.NODE_ENV,
+    PORT: process.env.PORT,
+    CWD: process.cwd(),
+    NODE_VERSION: process.version,
+    PLATFORM: process.platform
+  };
+  
+  res.json({ 
+    routes,
+    environment,
+    message: 'All registered routes diagnostics information' 
+  });
+});
+
 // 404 handler
 app.use((req, res) => {
   const message = `Route niet gevonden: ${req.method} ${req.url}`;
