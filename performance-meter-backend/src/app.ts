@@ -7,8 +7,14 @@ import timeEntryRoutes from './routes/timeEntryRoutes';
 import userManagementRoutes from './routes/userManagementRoutes';
 import userRoutes from './routes/userRoutes';
 import { UserManagementController } from './controllers/UserManagementController';
+import path from 'path';
 
 dotenv.config();
+
+// Log working directory and file existence
+console.log('[App] Process Current Directory:', process.cwd());
+console.log('[App] __dirname:', __dirname);
+console.log('[App] App.ts location:', path.resolve(__filename));
 
 const app = express();
 
@@ -18,7 +24,8 @@ const corsOptions = {
     'https://pm.tothepointcompany.nl',
     'http://localhost:3000',
     'https://performance-meter-render-6i1b.onrender.com',
-    'https://performance-meter.vercel.app'
+    'https://performance-meter.vercel.app',
+    '*'  // Add a wildcard for troubleshooting
   ],
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
@@ -42,70 +49,32 @@ app.use((req, res, next) => {
   next();
 });
 
-// Nieuwe test route om te verifiëren dat routes werken
-app.get('/api/test', (req, res) => {
-  console.log('[Test] Route aangeroepen');
-  res.json({ status: 'ok', message: 'Test route werkt correct', timestamp: new Date().toISOString() });
-});
-
-// Health check route
-app.get('/', (req, res) => {
-  console.log('[Health Check] Route aangeroepen');
-  res.json({ status: 'healthy', timestamp: new Date().toISOString() });
-});
-
-// Debug route
-app.get('/debug/routes', (req, res) => {
-  console.log('[Debug] Routes route aangeroepen');
-  const routes: any[] = [];
-  
-  app._router.stack.forEach((middleware: any) => {
-    if (middleware.route) {
-      routes.push({
-        type: 'direct',
-        path: middleware.route.path,
-        methods: middleware.route.methods
-      });
-    } else if (middleware.name === 'router') {
-      const baseRoute = middleware.regexp.toString().replace('/^\\', '').replace('\\/?(?=\\/|$)/i', '');
-      middleware.handle.stack.forEach((handler: any) => {
-        if (handler.route) {
-          routes.push({
-            type: 'router',
-            base: baseRoute,
-            path: handler.route.path,
-            method: handler.route.stack[0].method.toUpperCase(),
-            fullPath: `${baseRoute}${handler.route.path}`
-          });
-        }
-      });
-    } else {
-      routes.push({
-        type: 'middleware',
-        name: middleware.name
-      });
-    }
-  });
-  
-  res.json(routes);
-});
-
 console.log('[App] Routes registreren...');
 
-// API routes
-console.log('[App] Auth routes registreren...');
-app.use('/api/auth', authRoutes);
+// Handle OPTIONS requests for CORS
+app.options('*', cors(corsOptions));
 
-console.log('[App] Time entry routes registreren...');
-app.use('/api/time-entries', timeEntryRoutes);
+// ======== DIRECT ROUTES WITHOUT ROUTER MIDDLEWARE =========
 
-console.log('[App] User routes registreren...');
-app.use('/api/users', userRoutes);
+// Root health check
+app.get('/', (req, res) => {
+  console.log('[Root] Root route aangeroepen');
+  res.json({ message: 'Welcome to Performance Meter API' });
+});
 
-// Direct register user management endpoints without router layer
-const directUserController = new UserManagementController();
+// Super simple diagnostics route
+app.get('/all-routes', (req, res) => {
+  console.log('[Debug] All routes endpoint aangeroepen');
+  res.json({ 
+    message: 'All routes diagnostics',
+    cwd: process.cwd(),
+    dirname: __dirname,
+    nodeEnv: process.env.NODE_ENV,
+    nodeVersion: process.version
+  });
+});
 
-// Super simple mock endpoint that doesn't use the database
+// Simple mock data route
 app.get('/api/mock/users', (req, res) => {
   console.log('[Mock] Mock users endpoint aangeroepen');
   res.json({
@@ -117,115 +86,49 @@ app.get('/api/mock/users', (req, res) => {
   });
 });
 
-// Public test endpoint
-app.get('/api/user-management-test', (req, res) => {
-  console.log('[Public Test] User management test endpoint aangeroepen');
-  res.json({ message: 'Public test endpoint works!', timestamp: new Date().toISOString() });
-});
+// ======== USER MANAGEMENT DIRECT ROUTES =========
+const directUserController = new UserManagementController();
 
-// Direct user management endpoints (no authentication for testing)
-app.get('/api/user-management-direct/users', (req, res) => {
-  console.log('[Direct] Get all users endpoint aangeroepen');
+// All users route (no auth)
+app.get('/api/user-management/users', (req, res) => {
+  console.log('[Direct] Get users endpoint aangeroepen');
   directUserController.getAllUsers(req, res);
 });
 
-app.put('/api/user-management-direct/users/:userId/yearly-target', (req, res) => {
-  console.log('[Direct] Update yearly target endpoint aangeroepen');
+// Update target (no auth)
+app.put('/api/user-management/users/:userId/yearly-target', (req, res) => {
+  console.log('[Direct] Update target endpoint aangeroepen');
   directUserController.updateYearlyTarget(req, res);
 });
 
-app.get('/api/user-management-direct/users/:userId/yearly-target', (req, res) => {
-  console.log('[Direct] Get yearly target endpoint aangeroepen');
+// Get target (no auth)
+app.get('/api/user-management/users/:userId/yearly-target', (req, res) => {
+  console.log('[Direct] Get target endpoint aangeroepen');
   directUserController.getUserYearlyTarget(req, res);
 });
 
-// Directe test route voor user management
-app.get('/api/user-management/test', (req, res) => {
-  console.log('[UserManagement Test] Route aangeroepen');
-  res.json({ status: 'ok', message: 'User management test route werkt correct' });
+// ======== ROUTER REGISTRATION =========
+
+// API routes
+console.log('[App] Auth routes registreren...');
+app.use('/api/auth', authRoutes);
+
+console.log('[App] Time entry routes registreren...');
+app.use('/api/time-entries', timeEntryRoutes);
+
+console.log('[App] User routes registreren...');
+app.use('/api/users', userRoutes);
+
+// Logging middleware - must appear after route registration
+app.use((req, res, next) => {
+  console.log(`[Post-Registration] ${req.method} ${req.path} reached`);
+  // Continue down the middleware chain
+  next();
 });
 
-console.log('[App] User management routes registreren...');
-app.use('/api/user-management', userManagementRoutes);
+// ======== ERROR HANDLING =========
 
-console.log('[App] Alle routes zijn geregistreerd');
-
-// Debug: Toon alle geregistreerde routes
-console.log('[App] Geregistreerde routes:');
-app._router.stack.forEach((middleware: any) => {
-  if (middleware.route) {
-    console.log(`[App] Route: ${middleware.route.path}`);
-    console.log(`[App] Methods:`, middleware.route.methods);
-  } else if (middleware.name === 'router') {
-    console.log(`[App] Router: ${middleware.regexp}`);
-    middleware.handle.stack.forEach((handler: any) => {
-      if (handler.route) {
-        console.log(`[App] ${handler.route.stack[0].method.toUpperCase()} ${handler.route.path}`);
-        console.log(`[App] Full path: ${middleware.regexp}${handler.route.path}`);
-      }
-    });
-  }
-});
-
-// Super simple root route with all routes listed
-app.get('/all-routes', (req, res) => {
-  console.log('[Diagnostics] All routes endpoint aangeroepen');
-  
-  const routes: any[] = [];
-  
-  app._router.stack.forEach((middleware: any) => {
-    if (middleware.route) {
-      routes.push({
-        type: 'direct',
-        path: middleware.route.path,
-        methods: Object.keys(middleware.route.methods)
-      });
-    } else if (middleware.name === 'router') {
-      const baseRoute = middleware.regexp.toString().replace('/^\\', '').replace('\\/?(?=\\/|$)/i', '');
-      try {
-        middleware.handle.stack.forEach((handler: any) => {
-          if (handler.route) {
-            routes.push({
-              type: 'router',
-              base: baseRoute,
-              path: handler.route.path,
-              method: handler.route.stack[0].method.toUpperCase(),
-              fullPath: `${baseRoute}${handler.route.path}`
-            });
-          }
-        });
-      } catch (error: any) {
-        routes.push({
-          type: 'router_error',
-          base: baseRoute,
-          error: error.message
-        });
-      }
-    } else {
-      routes.push({
-        type: 'middleware',
-        name: middleware.name
-      });
-    }
-  });
-  
-  // Also show environment
-  const environment = {
-    NODE_ENV: process.env.NODE_ENV,
-    PORT: process.env.PORT,
-    CWD: process.cwd(),
-    NODE_VERSION: process.version,
-    PLATFORM: process.platform
-  };
-  
-  res.json({ 
-    routes,
-    environment,
-    message: 'All registered routes diagnostics information' 
-  });
-});
-
-// 404 handler
+// 404 handler - must be AFTER all routes
 app.use((req, res) => {
   const message = `Route niet gevonden: ${req.method} ${req.url}`;
   console.log(`[${new Date().toISOString()}] 404 Not Found:`, message);
