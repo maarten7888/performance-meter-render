@@ -16,7 +16,7 @@ export class UserManagementController {
     }
   }
 
-  // Update het jaartarget van een gebruiker
+  // Update het jaartarget van een specifieke gebruiker
   public async updateYearlyTarget(req: Request, res: Response): Promise<void> {
     try {
       const { userId } = req.params;
