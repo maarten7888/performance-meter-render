@@ -73,22 +73,19 @@ export class TimeEntryController {
 
       const totalAmount = (result as any[])[0]?.total_amount || 0;
 
-      // Get all active projects for calculating target
-      const [activeProjects] = await pool.query(`
-        SELECT hourly_rate
-        FROM projects
-        WHERE user_id = ?
-        AND end_date >= CURRENT_DATE()
+      // Get yearly target from users table
+      const [userResult] = await pool.query(`
+        SELECT yearlyTarget
+        FROM users
+        WHERE id = ?
       `, [user_id]);
 
-      // Calculate yearly target based on active projects
-      const yearlyTarget = (activeProjects as any[]).reduce((sum: number, project: any) => 
-        sum + (project.hourly_rate * 1800), 0); // 1800 = target hours per year
+      const yearlyTarget = (userResult as any[])[0]?.yearlyTarget || 0;
 
       res.json({
         currentAmount: totalAmount,
         yearlyTarget: yearlyTarget,
-        progressPercentage: (totalAmount / yearlyTarget) * 100
+        progressPercentage: yearlyTarget > 0 ? (totalAmount / yearlyTarget) * 100 : 0
       });
     } catch (error) {
       console.error('Error fetching yearly target:', error);
