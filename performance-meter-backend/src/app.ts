@@ -64,18 +64,6 @@ app.get('/', (req, res) => {
   res.json({ message: 'Welcome to Performance Meter API' });
 });
 
-// Super simple diagnostics route
-app.get('/all-routes', (req, res) => {
-  console.log('[Debug] All routes endpoint aangeroepen');
-  res.json({ 
-    message: 'All routes diagnostics',
-    cwd: process.cwd(),
-    dirname: __dirname,
-    nodeEnv: process.env.NODE_ENV,
-    nodeVersion: process.version
-  });
-});
-
 // ======== ROUTER REGISTRATION =========
 
 // API routes
