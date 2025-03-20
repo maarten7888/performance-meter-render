@@ -92,7 +92,7 @@ router.get('/all-with-targets', authenticateToken, async (req: Request, res: Res
       email: user.email,
       firstName: user.firstName,
       lastName: user.lastName,
-      yearTarget: user.yearlyTarget || 0
+      yearlyTarget: user.yearlyTarget || 0
     }));
 
     res.json({ users: usersWithTargets });
