@@ -80,7 +80,7 @@ router.get('/year-target', authenticateToken, async (req, res) => {
 router.get('/all-with-targets', authenticateToken, async (req: Request, res: Response) => {
   try {
     const [users] = await pool.query<UserRow[]>(
-      'SELECT id, email, yearlyTarget, firstName, lastName FROM users ORDER BY email ASC'
+      'SELECT id, email, name FROM users ORDER BY email ASC'
     );
 
     if (!users || users.length === 0) {
@@ -90,9 +90,8 @@ router.get('/all-with-targets', authenticateToken, async (req: Request, res: Res
     const usersWithTargets = users.map((user: UserRow) => ({
       id: user.id,
       email: user.email,
-      firstName: user.firstName,
-      lastName: user.lastName,
-      yearlyTarget: user.yearlyTarget || 0
+      name: user.name,
+      yearTarget: 150000 // Vaste waarde, net als in het /year-target endpoint
     }));
 
     res.json({ users: usersWithTargets });
