@@ -10,7 +10,7 @@ interface UserRow extends RowDataPacket {
   id: number;
   email: string;
   name: string;
-  yearlyTarget?: number;
+  yearTarget?: number;
   firstName?: string;
   lastName?: string;
 }
@@ -80,7 +80,7 @@ router.get('/year-target', authenticateToken, async (req, res) => {
 router.get('/all-with-targets', authenticateToken, async (req: Request, res: Response) => {
   try {
     const [users] = await pool.query<UserRow[]>(
-      'SELECT id, email, yearlyTarget, firstName, lastName FROM users ORDER BY email ASC'
+      'SELECT id, email, yearTarget, firstName, lastName FROM users ORDER BY email ASC'
     );
 
     if (!users || users.length === 0) {
@@ -92,7 +92,7 @@ router.get('/all-with-targets', authenticateToken, async (req: Request, res: Res
       email: user.email,
       firstName: user.firstName,
       lastName: user.lastName,
-      yearTarget: user.yearlyTarget || 0
+      yearTarget: user.yearTarget || 0
     }));
 
     res.json({ users: usersWithTargets });
