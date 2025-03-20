@@ -3,11 +3,16 @@ import { UserController } from '../controllers/UserController';
 import { authenticateToken } from '../middleware/auth';
 import pool from '../lib/db';
 import { RowDataPacket } from 'mysql2';
+import { Request, Response } from 'express';
+import { User } from '../models/User';
 
 interface UserRow extends RowDataPacket {
   id: number;
   email: string;
   name: string;
+  yearlyTarget?: number;
+  firstName?: string;
+  lastName?: string;
 }
 
 const router = express.Router();
@@ -69,6 +74,31 @@ router.get('/year-target', authenticateToken, async (req, res) => {
   } catch (error) {
     console.error('Error fetching year target:', error);
     res.status(500).json({ error: 'Er is een fout opgetreden bij het ophalen van het jaardoel' });
+  }
+});
+
+router.get('/all-with-targets', authenticateToken, async (req: Request, res: Response) => {
+  try {
+    const [users] = await pool.query<UserRow[]>(
+      'SELECT id, email, yearlyTarget, firstName, lastName FROM users ORDER BY email ASC'
+    );
+
+    if (!users || users.length === 0) {
+      return res.status(404).json({ error: 'Geen gebruikers gevonden' });
+    }
+
+    const usersWithTargets = users.map((user: UserRow) => ({
+      id: user.id,
+      email: user.email,
+      firstName: user.firstName,
+      lastName: user.lastName,
+      yearTarget: user.yearlyTarget || 0
+    }));
+
+    res.json({ users: usersWithTargets });
+  } catch (error) {
+    console.error('Error fetching users with targets:', error);
+    res.status(500).json({ error: 'Er is een fout opgetreden bij het ophalen van de gebruikers en hun jaardoelen' });
   }
 });
 
