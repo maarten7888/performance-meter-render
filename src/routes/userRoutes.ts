@@ -77,10 +77,40 @@ router.get('/year-target', authenticateToken, async (req, res) => {
   }
 });
 
+// Jaartarget bijwerken voor een gebruiker
+router.put('/year-target/:userId', authenticateToken, async (req: Request, res: Response) => {
+  try {
+    const { userId } = req.params;
+    const { target } = req.body;
+
+    // Controleer of de gebruiker bestaat
+    const [users] = await pool.query<UserRow[]>(
+      'SELECT id FROM users WHERE id = ?',
+      [userId]
+    );
+
+    if (!users || users.length === 0) {
+      return res.status(404).json({ error: 'Gebruiker niet gevonden' });
+    }
+
+    // Update het jaartarget
+    await pool.query(
+      'UPDATE users SET yearlyTarget = ? WHERE id = ?',
+      [target, userId]
+    );
+
+    res.json({ message: 'Jaartarget succesvol bijgewerkt' });
+  } catch (error) {
+    console.error('Error updating year target:', error);
+    res.status(500).json({ error: 'Er is een fout opgetreden bij het bijwerken van het jaartarget' });
+  }
+});
+
+// Alle gebruikers met hun jaartargets ophalen
 router.get('/all-with-targets', authenticateToken, async (req: Request, res: Response) => {
   try {
     const [users] = await pool.query<UserRow[]>(
-      'SELECT id, email, name FROM users ORDER BY email ASC'
+      'SELECT id, email, name, yearlyTarget FROM users ORDER BY email ASC'
     );
 
     if (!users || users.length === 0) {
@@ -91,7 +121,7 @@ router.get('/all-with-targets', authenticateToken, async (req: Request, res: Res
       id: user.id,
       email: user.email,
       name: user.name,
-      yearTarget: 150000 // Vaste waarde, net als in het /year-target endpoint
+      yearTarget: user.yearlyTarget || 150000 // Gebruik het opgeslagen target of een standaardwaarde
     }));
 
     res.json({ users: usersWithTargets });
