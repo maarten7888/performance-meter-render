@@ -4,7 +4,6 @@ import dotenv from 'dotenv';
 import { pool } from './config/database';
 import authRoutes from './routes/authRoutes';
 import timeEntryRoutes from './routes/timeEntryRoutes';
-import userManagementRoutes from './routes/userManagementRoutes';
 import userRoutes from './routes/userRoutes';
 import path from 'path';
 
@@ -78,9 +77,6 @@ app.use('/api/time-entries', timeEntryRoutes);
 
 console.log('[App] User routes registreren...');
 app.use('/api/users', userRoutes);
-
-console.log('[App] User management routes registreren...');
-app.use('/api/user-management', userManagementRoutes);
 
 // Logging middleware - must appear after route registration
 app.use((req, res, next) => {
