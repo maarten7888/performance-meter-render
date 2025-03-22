@@ -32,4 +32,21 @@ CREATE TABLE IF NOT EXISTS time_entries (
   updatedAt DATETIME NOT NULL,
   FOREIGN KEY (userId) REFERENCES users(id) ON DELETE CASCADE,
   FOREIGN KEY (projectId) REFERENCES projects(id) ON DELETE CASCADE
+);
+
+-- Consultant profiles table
+CREATE TABLE IF NOT EXISTS consultant_profiles (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  userId INT NOT NULL,
+  firstName VARCHAR(255),
+  lastName VARCHAR(255),
+  email VARCHAR(255) NOT NULL,
+  phoneNumber VARCHAR(50),
+  skills JSON,
+  languages JSON,
+  workExperience JSON,
+  education JSON,
+  createdAt DATETIME NOT NULL,
+  updatedAt DATETIME NOT NULL,
+  FOREIGN KEY (userId) REFERENCES users(id) ON DELETE CASCADE
 ); 

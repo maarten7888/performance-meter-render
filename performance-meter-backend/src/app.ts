@@ -5,6 +5,7 @@ import { pool } from './config/database';
 import authRoutes from './routes/authRoutes';
 import timeEntryRoutes from './routes/timeEntryRoutes';
 import userRoutes from './routes/userRoutes';
+import consultantProfileRoutes from './routes/consultantProfileRoutes';
 import path from 'path';
 
 dotenv.config();
@@ -77,6 +78,9 @@ app.use('/api/time-entries', timeEntryRoutes);
 
 console.log('[App] User routes registreren...');
 app.use('/api/users', userRoutes);
+
+console.log('[App] Consultant profile routes registreren...');
+app.use('/api/consultant-profiles', consultantProfileRoutes);
 
 // Logging middleware - must appear after route registration
 app.use((req, res, next) => {
