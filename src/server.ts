@@ -8,6 +8,7 @@ import userRoutes from './routes/userRoutes';
 import projectRoutes from './routes/projectRoutes';
 import timeEntryRoutes from './routes/timeEntryRoutes';
 import authRoutes from './routes/auth';
+import consultantProfileRoutes from './routes/consultantProfileRoutes';
 import { initializeDatabase } from './database/init';
 
 // Load environment variables
@@ -28,6 +29,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/projects', projectRoutes);
 app.use('/api/time-entries', timeEntryRoutes);
+app.use('/api/consultant-profiles', consultantProfileRoutes);
 
 // Basic route
 app.get('/', (req, res) => {
