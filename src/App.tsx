@@ -1,9 +1,14 @@
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { ThemeProvider, CssBaseline } from '@mui/material';
 import { createTheme } from '@mui/material/styles';
-import { AuthProvider } from './contexts/AuthContext';
+import { AuthProvider, useAuth } from './contexts/AuthContext';
 import LoginPage from './pages/LoginPage';
+import TimeRegistration from './pages/TimeRegistration';
+import Projects from './pages/Projects';
+import Dashboard from './pages/Dashboard';
+import Management from './pages/Management';
+import Layout from './components/Layout';
 
 // Import Montserrat font
 import '@fontsource/montserrat';
@@ -44,7 +49,32 @@ function App() {
         <Router>
           <Routes>
             <Route path="/login" element={<LoginPage />} />
-            <Route path="/" element={<Navigate to="/login" replace />} />
+            <Route path="/" element={
+              <PrivateRoute>
+                <Layout>
+                  <Dashboard />
+                </Layout>
+              </PrivateRoute>
+            } />
+            <Route path="/time-registration" element={
+              <PrivateRoute>
+                <Layout>
+                  <TimeRegistration />
+                </Layout>
+              </PrivateRoute>
+            } />
+            <Route path="/projects" element={
+              <PrivateRoute>
+                <Layout>
+                  <Projects />
+                </Layout>
+              </PrivateRoute>
+            } />
+            <Route path="/management" element={
+              <Layout>
+                <Management />
+              </Layout>
+            } />
           </Routes>
         </Router>
       </AuthProvider>

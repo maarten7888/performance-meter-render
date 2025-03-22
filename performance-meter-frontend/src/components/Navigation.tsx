@@ -2,6 +2,7 @@ import React from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { AppBar, Toolbar, Button, Box, IconButton, Tooltip } from '@mui/material';
 import LogoutIcon from '@mui/icons-material/Logout';
+import PersonIcon from '@mui/icons-material/Person';
 import { useAuth } from '../contexts/AuthContext';
 
 const Navigation = () => {
@@ -19,7 +20,7 @@ const Navigation = () => {
 
   const handleLogout = () => {
     logout();
-    navigate('/login' as string);
+    navigate('/login');
   };
 
   const isActive = (path: string) => location.pathname === path;
@@ -30,7 +31,7 @@ const Navigation = () => {
         <Box sx={{ flexGrow: 1, display: 'flex', gap: 2 }}>
           <Button
             color="inherit"
-            onClick={() => navigate('/' as string)}
+            onClick={() => navigate('/')}
             sx={{
               color: 'white',
               bgcolor: isActive('/') ? 'rgba(255, 255, 255, 0.1)' : 'transparent',
@@ -40,7 +41,7 @@ const Navigation = () => {
           </Button>
           <Button
             color="inherit"
-            onClick={() => navigate('/projects' as string)}
+            onClick={() => navigate('/projects')}
             sx={{
               color: 'white',
               bgcolor: isActive('/projects') ? 'rgba(255, 255, 255, 0.1)' : 'transparent',
@@ -50,7 +51,7 @@ const Navigation = () => {
           </Button>
           <Button
             color="inherit"
-            onClick={() => navigate('/time-registration' as string)}
+            onClick={() => navigate('/time-registration')}
             sx={{
               color: 'white',
               bgcolor: isActive('/time-registration') ? 'rgba(255, 255, 255, 0.1)' : 'transparent',
@@ -60,13 +61,24 @@ const Navigation = () => {
           </Button>
           <Button
             color="inherit"
-            onClick={() => navigate('/user-management' as string)}
+            onClick={() => navigate('/consultant-profile')}
+            startIcon={<PersonIcon />}
             sx={{
               color: 'white',
-              bgcolor: isActive('/user-management') ? 'rgba(255, 255, 255, 0.1)' : 'transparent',
+              bgcolor: isActive('/consultant-profile') ? 'rgba(255, 255, 255, 0.1)' : 'transparent',
             }}
           >
-            Gebruikersbeheer
+            Profiel
+          </Button>
+          <Button
+            color="inherit"
+            onClick={() => navigate('/management')}
+            sx={{
+              color: 'white',
+              bgcolor: isActive('/management') ? 'rgba(255, 255, 255, 0.1)' : 'transparent',
+            }}
+          >
+            Beheer
           </Button>
         </Box>
         <Tooltip title="Uitloggen">

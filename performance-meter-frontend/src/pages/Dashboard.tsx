@@ -129,7 +129,7 @@ const Dashboard: React.FC = () => {
     }),
     datasets: [
       {
-        label: 'Gefactureerd bedrag',
+        label: 'Euro',
         data: Array.from({ length: 12 }, (_, i) => {
           const monthData = monthlyData.find(data => data.month === i + 1);
           return monthData ? monthData.total_amount : 0;
@@ -139,7 +139,7 @@ const Dashboard: React.FC = () => {
         yAxisID: 'y',
       },
       {
-        label: 'Gefactureerde uren',
+        label: 'Uren',
         data: Array.from({ length: 12 }, (_, i) => {
           const monthData = monthlyData.find(data => data.month === i + 1);
           return monthData ? monthData.total_hours : 0;
@@ -174,7 +174,7 @@ const Dashboard: React.FC = () => {
       },
       title: {
         display: true,
-        text: 'Jaaroverzicht Facturatie',
+        text: 'Jaaroverzicht',
         color: '#ffffff',
       },
       tooltip: {
@@ -279,7 +279,7 @@ const Dashboard: React.FC = () => {
           <StyledPaper sx={{ height: '100%' }}>
             <Box>
               <Typography variant="h6" color="white" gutterBottom>
-                Voortgang Jaardoel
+                Voortgang jaardoel
               </Typography>
               {yearlyTarget && (
                 <>
@@ -318,7 +318,7 @@ const Dashboard: React.FC = () => {
           <StyledPaper sx={{ height: '100%' }}>
             <Box>
               <Typography variant="h6" color="white" gutterBottom>
-                Target Voorspelling
+                Target voorspelling
               </Typography>
               {yearlyTarget && (
                 <Grid container spacing={2}>

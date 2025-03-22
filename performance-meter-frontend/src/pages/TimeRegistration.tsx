@@ -13,12 +13,21 @@ import {
   TableContainer,
   TableHead,
   TableRow,
+  IconButton,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  TablePagination,
 } from '@mui/material';
 import { styled } from '@mui/material/styles';
 import { startOfWeek, endOfWeek, format } from 'date-fns';
 import { nl } from 'date-fns/locale';
+import EditIcon from '@mui/icons-material/Edit';
+import DeleteIcon from '@mui/icons-material/Delete';
 import api from '../services/api';
 import { useAuth } from '../contexts/AuthContext';
+import WeekCalendar from '../components/WeekCalendar';
 
 const StyledPaper = styled(Paper)(({ theme }) => ({
   marginTop: theme.spacing(4),
@@ -52,6 +61,13 @@ interface NewTimeEntry {
   hours: string;
 }
 
+interface TimeEntryResponse {
+  id: number;
+  project_id: number;
+  entry_date: string;
+  hours: number;
+}
+
 const TimeRegistration = () => {
   const { user, isAuthenticated } = useAuth();
   const [projects, setProjects] = useState<Project[]>([]);
@@ -63,15 +79,21 @@ const TimeRegistration = () => {
     hours: '',
   });
   const [weekDates, setWeekDates] = useState<{ start: string; end: string } | null>(null);
+  const [editingEntry, setEditingEntry] = useState<TimeEntry | null>(null);
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [editForm, setEditForm] = useState<{
+    projectId: string;
+    date: string;
+    hours: string;
+  }>({
+    projectId: '',
+    date: '',
+    hours: '',
+  });
+  const [page, setPage] = useState(0);
+  const [rowsPerPage, setRowsPerPage] = useState(10);
 
   useEffect(() => {
-    console.log('=== Auth State in TimeRegistration ===');
-    console.log('Is authenticated:', isAuthenticated);
-    console.log('Current user:', user);
-    console.log('Token in localStorage:', localStorage.getItem('token'));
-    console.log('API default headers:', api.defaults.headers);
-    console.log('================');
-
     if (isAuthenticated) {
       fetchProjects();
       fetchTimeEntries();
@@ -80,33 +102,19 @@ const TimeRegistration = () => {
 
   const fetchProjects = async () => {
     try {
-      console.log('=== Fetching Projects ===');
       const response = await api.get<Project[]>('/api/projects');
-      console.log('Projects response:', response.data);
       setProjects(response.data);
     } catch (error) {
       console.error('Error fetching projects:', error);
-      if (error.response) {
-        console.error('Error response:', error.response.data);
-        console.error('Error status:', error.response.status);
-        console.error('Error headers:', error.response.headers);
-      }
     }
   };
 
   const fetchTimeEntries = async () => {
     try {
-      console.log('=== Fetching Time Entries ===');
       const response = await api.get<TimeEntry[]>('/api/time-entries');
-      console.log('Time entries response:', response.data);
       setTimeEntries(response.data);
     } catch (error) {
       console.error('Error fetching time entries:', error);
-      if (error.response) {
-        console.error('Error response:', error.response.data);
-        console.error('Error status:', error.response.status);
-        console.error('Error headers:', error.response.headers);
-      }
     }
   };
 
@@ -134,21 +142,21 @@ const TimeRegistration = () => {
 
   const handleSubmit = async () => {
     try {
-      console.log('=== Creating Time Entry ===');
-      console.log('Entry data:', {
+      const response = await api.post<TimeEntryResponse>('/api/time-entries', {
         project_id: parseInt(newEntry.projectId),
         entry_date: newEntry.date?.toISOString().split('T')[0],
         hours: parseFloat(newEntry.hours),
       });
 
-      const response = await api.post('/api/time-entries', {
-        project_id: parseInt(newEntry.projectId),
-        entry_date: newEntry.date?.toISOString().split('T')[0],
+      const newTimeEntry: TimeEntry = {
+        id: response.data.id,
+        projectId: parseInt(newEntry.projectId),
+        projectName: projects.find(p => p.id === parseInt(newEntry.projectId))?.name || '',
+        date: newEntry.date?.toISOString().split('T')[0] || '',
         hours: parseFloat(newEntry.hours),
-      });
-
-      console.log('Create response:', response.data);
+      };
       
+      setTimeEntries([...timeEntries, newTimeEntry]);
       setNewEntry({
         projectId: '',
         weekNumber: '',
@@ -157,16 +165,70 @@ const TimeRegistration = () => {
       });
       
       setWeekDates(null);
-      fetchTimeEntries();
     } catch (error) {
       console.error('Error creating time entry:', error);
-      if (error.response) {
-        console.error('Error response:', error.response.data);
-        console.error('Error status:', error.response.status);
-        console.error('Error headers:', error.response.headers);
-      }
     }
   };
+
+  const handleEditClick = (entry: TimeEntry) => {
+    setEditingEntry(entry);
+    setEditForm({
+      projectId: String(entry.projectId),
+      date: entry.date,
+      hours: String(entry.hours),
+    });
+    setEditDialogOpen(true);
+  };
+
+  const handleEditSubmit = async () => {
+    if (!editingEntry) return;
+
+    try {
+      await api.put(`/api/time-entries/${editingEntry.id}`, {
+        project_id: parseInt(editForm.projectId),
+        entry_date: editForm.date,
+        hours: parseFloat(editForm.hours),
+      });
+
+      const updatedEntry: TimeEntry = {
+        ...editingEntry,
+        projectId: parseInt(editForm.projectId),
+        projectName: projects.find(p => p.id === parseInt(editForm.projectId))?.name || '',
+        date: editForm.date,
+        hours: parseFloat(editForm.hours),
+      };
+
+      setTimeEntries(timeEntries.map(entry => 
+        entry.id === editingEntry.id ? updatedEntry : entry
+      ));
+      setEditDialogOpen(false);
+      setEditingEntry(null);
+    } catch (error) {
+      console.error('Error updating time entry:', error);
+    }
+  };
+
+  const handleDelete = async (entryId: number) => {
+    if (!window.confirm('Weet je zeker dat je deze registratie wilt verwijderen?')) return;
+
+    try {
+      await api.delete(`/api/time-entries/${entryId}`);
+      setTimeEntries(timeEntries.filter(entry => entry.id !== entryId));
+    } catch (error) {
+      console.error('Error deleting time entry:', error);
+    }
+  };
+
+  const handleChangePage = (event: unknown, newPage: number) => {
+    setPage(newPage);
+  };
+
+  const handleChangeRowsPerPage = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setRowsPerPage(parseInt(event.target.value, 10));
+    setPage(0);
+  };
+
+  const paginatedEntries = timeEntries.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage);
 
   return (
     <Container>
@@ -189,12 +251,42 @@ const TimeRegistration = () => {
               onChange={(e) => setNewEntry({ ...newEntry, projectId: e.target.value })}
               sx={{
                 minWidth: 200,
-                '& .MuiInputBase-input': { color: 'white' },
-                '& .MuiInputLabel-root': { color: 'white' },
                 '& .MuiOutlinedInput-root': {
-                  '& fieldset': { borderColor: 'white' },
-                  '&:hover fieldset': { borderColor: 'white' },
+                  '& fieldset': {
+                    borderColor: 'white',
+                  },
+                  '&:hover fieldset': {
+                    borderColor: 'white',
+                  },
+                  '&.Mui-focused fieldset': {
+                    borderColor: 'white',
+                  },
+                  '& .MuiSelect-select': {
+                    color: 'white',
+                  },
                 },
+                '& .MuiInputLabel-root': {
+                  color: 'white',
+                  '&.Mui-focused': {
+                    color: 'white',
+                  },
+                },
+              }}
+              SelectProps={{
+                MenuProps: {
+                  PaperProps: {
+                    sx: {
+                      bgcolor: '#0c2d5a',
+                      color: 'white',
+                      '& .MuiMenuItem-root': {
+                        color: 'white',
+                        '&:hover': {
+                          bgcolor: '#1a3d6a',
+                        },
+                      },
+                    }
+                  }
+                }
               }}
             >
               {projects.map((project) => (
@@ -260,10 +352,11 @@ const TimeRegistration = () => {
                 <StyledTableCell>Weeknummer</StyledTableCell>
                 <StyledTableCell>Datum</StyledTableCell>
                 <StyledTableCell>Uren</StyledTableCell>
+                <StyledTableCell>Acties</StyledTableCell>
               </TableRow>
             </TableHead>
             <TableBody>
-              {timeEntries.map((entry) => {
+              {paginatedEntries.map((entry) => {
                 const entryDate = new Date(entry.date);
                 const weekNumber = Math.ceil((entryDate.getTime() - new Date(entryDate.getFullYear(), 0, 1).getTime()) / (7 * 24 * 60 * 60 * 1000));
                 return (
@@ -274,13 +367,197 @@ const TimeRegistration = () => {
                       {entryDate.toLocaleDateString('nl-NL')}
                     </StyledTableCell>
                     <StyledTableCell>{entry.hours}</StyledTableCell>
+                    <StyledTableCell>
+                      <IconButton 
+                        size="small" 
+                        onClick={() => handleEditClick(entry)}
+                        sx={{ color: 'white' }}
+                      >
+                        <EditIcon />
+                      </IconButton>
+                      <IconButton 
+                        size="small" 
+                        onClick={() => handleDelete(entry.id)}
+                        sx={{ color: 'white' }}
+                      >
+                        <DeleteIcon />
+                      </IconButton>
+                    </StyledTableCell>
                   </TableRow>
                 );
               })}
             </TableBody>
           </Table>
+          <TablePagination
+            component="div"
+            count={timeEntries.length}
+            page={page}
+            onPageChange={handleChangePage}
+            rowsPerPage={rowsPerPage}
+            onRowsPerPageChange={handleChangeRowsPerPage}
+            rowsPerPageOptions={[5, 10, 25]}
+            sx={{
+              color: 'white',
+              '& .MuiTablePagination-select': {
+                color: 'white',
+              },
+              '& .MuiTablePagination-selectIcon': {
+                color: 'white',
+              },
+              '& .MuiTablePagination-selectLabel': {
+                color: 'white',
+              },
+              '& .MuiTablePagination-displayedRows': {
+                color: 'white',
+              },
+            }}
+          />
         </TableContainer>
       </StyledPaper>
+
+      <Dialog 
+        open={editDialogOpen} 
+        onClose={() => setEditDialogOpen(false)}
+        PaperProps={{
+          sx: {
+            bgcolor: '#1a1a1a',
+            color: 'white',
+            '& .MuiDialogTitle-root': {
+              color: 'white',
+              borderBottom: '1px solid #333',
+            },
+            '& .MuiDialogActions-root': {
+              borderTop: '1px solid #333',
+            },
+            '& .MuiTextField-root': {
+              '& .MuiOutlinedInput-root': {
+                color: 'white',
+                '& fieldset': {
+                  borderColor: '#333',
+                },
+                '&:hover fieldset': {
+                  borderColor: '#666',
+                },
+                '&.Mui-focused fieldset': {
+                  borderColor: '#1976d2',
+                },
+              },
+              '& .MuiInputLabel-root': {
+                color: '#999',
+                '&.Mui-focused': {
+                  color: '#1976d2',
+                },
+              },
+            },
+          }
+        }}
+      >
+        <DialogTitle>Urenregistratie Bewerken</DialogTitle>
+        <DialogContent>
+          <Box display="flex" flexDirection="column" gap={2} mt={2}>
+            <TextField
+              select
+              label="Project"
+              value={editForm.projectId}
+              onChange={(e) => setEditForm({ ...editForm, projectId: e.target.value })}
+              fullWidth
+              sx={{
+                '& .MuiOutlinedInput-root': {
+                  '& fieldset': {
+                    borderColor: 'white',
+                  },
+                  '&:hover fieldset': {
+                    borderColor: 'white',
+                  },
+                  '&.Mui-focused fieldset': {
+                    borderColor: 'white',
+                  },
+                  '& .MuiSelect-select': {
+                    color: 'white',
+                  },
+                },
+                '& .MuiInputLabel-root': {
+                  color: 'white',
+                  '&.Mui-focused': {
+                    color: 'white',
+                  },
+                },
+              }}
+              SelectProps={{
+                MenuProps: {
+                  PaperProps: {
+                    sx: {
+                      bgcolor: '#0c2d5a',
+                      color: 'white',
+                      '& .MuiMenuItem-root': {
+                        color: 'white',
+                        '&:hover': {
+                          bgcolor: '#1a3d6a',
+                        },
+                      },
+                    }
+                  }
+                }
+              }}
+            >
+              {projects.map((project) => (
+                <MenuItem key={project.id} value={String(project.id)}>
+                  {project.name}
+                </MenuItem>
+              ))}
+            </TextField>
+            <TextField
+              label="Datum"
+              type="date"
+              value={editForm.date}
+              onChange={(e) => setEditForm({ ...editForm, date: e.target.value })}
+              fullWidth
+              InputLabelProps={{ shrink: true }}
+              InputProps={{
+                sx: {
+                  '& input': {
+                    color: 'white',
+                  },
+                }
+              }}
+            />
+            <TextField
+              label="Aantal uren"
+              type="number"
+              value={editForm.hours}
+              onChange={(e) => setEditForm({ ...editForm, hours: e.target.value })}
+              fullWidth
+              InputProps={{
+                sx: {
+                  '& input': {
+                    color: 'white',
+                  },
+                }
+              }}
+            />
+          </Box>
+        </DialogContent>
+        <DialogActions>
+          <Button 
+            onClick={() => setEditDialogOpen(false)}
+            sx={{ color: '#999' }}
+          >
+            Annuleren
+          </Button>
+          <Button 
+            onClick={handleEditSubmit} 
+            variant="contained"
+            sx={{
+              bgcolor: '#1976d2',
+              '&:hover': {
+                bgcolor: '#1565c0',
+              },
+            }}
+          >
+            Opslaan
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Container>
   );
 };
