@@ -117,6 +117,7 @@ app.use((req, res, next) => {
   console.log(`[Post-Registration] ${req.method} ${req.path} reached`);
   console.log('[Post-Registration] Base URL:', req.baseUrl);
   console.log('[Post-Registration] Original URL:', req.originalUrl);
+  console.log('[Post-Registration] Headers:', JSON.stringify(req.headers, null, 2));
   next();
 });
 
