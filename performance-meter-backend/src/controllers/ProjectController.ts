@@ -1,6 +1,16 @@
 import { Response } from 'express';
 import { pool } from '../config/database';
 import { AuthRequest } from '../types/express';
+import { RowDataPacket } from 'mysql2';
+
+interface ProjectRow extends RowDataPacket {
+  id: number;
+  name: string;
+  hourly_rate: number;
+  start_date: Date;
+  end_date: Date;
+  user_id: number;
+}
 
 export class ProjectController {
   async getProjects(req: AuthRequest, res: Response) {
@@ -10,7 +20,7 @@ export class ProjectController {
         return res.status(401).json({ error: 'Niet geautoriseerd' });
       }
 
-      const [projects] = await pool.query(
+      const [projects] = await pool.query<ProjectRow[]>(
         'SELECT id, name, hourly_rate, start_date, end_date FROM projects WHERE user_id = ?',
         [userId]
       );
@@ -30,12 +40,12 @@ export class ProjectController {
       }
 
       const { id } = req.params;
-      const [projects] = await pool.query(
+      const [projects] = await pool.query<ProjectRow[]>(
         'SELECT id, name, hourly_rate, start_date, end_date FROM projects WHERE id = ? AND user_id = ?',
         [id, userId]
       );
 
-      if (!(projects as any[]).length) {
+      if (!projects.length) {
         return res.status(404).json({ error: 'Project niet gevonden' });
       }
 
@@ -64,7 +74,7 @@ export class ProjectController {
         [name, hourlyRate, new Date(startDate), new Date(endDate), userId]
       );
 
-      const [newProject] = await pool.query(
+      const [newProject] = await pool.query<ProjectRow[]>(
         'SELECT id, name, hourly_rate, start_date, end_date FROM projects WHERE id = ?',
         [(result as any).insertId]
       );
@@ -86,12 +96,12 @@ export class ProjectController {
       const { id } = req.params;
 
       // Controleer of er tijdregistraties zijn
-      const [timeEntries] = await pool.query(
+      const [timeEntries] = await pool.query<RowDataPacket[]>(
         'SELECT COUNT(*) as count FROM time_entries WHERE project_id = ?',
         [id]
       );
 
-      if ((timeEntries as any[])[0]?.count > 0) {
+      if (timeEntries[0]?.count > 0) {
         return res.status(400).json({ 
           error: 'Kan project niet verwijderen omdat er tijdregistraties aan gekoppeld zijn' 
         });
