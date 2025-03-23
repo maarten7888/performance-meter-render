@@ -101,27 +101,23 @@ router.get('/:id', authenticateToken, async (req: AuthRequest, res) => {
 
         const { id } = req.params;
         
-        // Eerst controleren of het project bestaat en van de gebruiker is
-        const [project] = await pool.query<ProjectRow[]>(
-            'SELECT id, name, hourly_rate, start_date, end_date FROM projects WHERE id = ?',
-            [id]
+        // Gebruik dezelfde query structuur als de werkende route
+        const [projects] = await pool.query<ProjectRow[]>(
+            'SELECT id, name, hourly_rate, start_date, end_date FROM projects WHERE id = ? AND user_id = ?',
+            [id, req.user.id]
         );
 
-        if (!(project as any[]).length) {
+        if (!projects.length) {
             return res.status(404).json({ error: 'Project niet gevonden' });
         }
 
-        // Dan controleren of het project van de gebruiker is
-        if (project[0].user_id !== req.user.id) {
-            return res.status(403).json({ error: 'Geen toegang tot dit project' });
-        }
-
+        const project = projects[0];
         res.json({
-            id: project[0].id,
-            name: project[0].name,
-            hourlyRate: project[0].hourly_rate,
-            startDate: project[0].start_date,
-            endDate: project[0].end_date
+            id: project.id,
+            name: project.name,
+            hourlyRate: project.hourly_rate,
+            startDate: project.start_date,
+            endDate: project.end_date
         });
     } catch (error) {
         console.error('Error fetching project:', error);
