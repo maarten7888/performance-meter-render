@@ -69,14 +69,24 @@ router.get('/:id', authenticateToken, async (req: AuthRequest, res) => {
         const { id } = req.params;
         console.log('Attempting to fetch project:', { id, userId: req.user.id });
 
+        // Eerst controleren of het project bestaat
         const [project] = await pool.query<ProjectRow[]>(
-            'SELECT id, name, hourly_rate, start_date, end_date FROM projects WHERE id = ? AND user_id = ?',
-            [id, req.user.id]
+            'SELECT * FROM projects WHERE id = ?',
+            [id]
         );
 
         if (!(project as any[]).length) {
-            console.log('Project not found or unauthorized:', { id, userId: req.user.id });
-            return res.status(404).json({ error: 'Project niet gevonden of niet geautoriseerd' });
+            console.log('Project not found:', { id });
+            return res.status(404).json({ error: 'Project niet gevonden' });
+        }
+
+        // Dan controleren of het project van de gebruiker is
+        if (project[0].user_id !== req.user.id) {
+            console.log('Project belongs to different user:', { 
+                projectUserId: project[0].user_id, 
+                requestUserId: req.user.id 
+            });
+            return res.status(403).json({ error: 'Geen toegang tot dit project' });
         }
 
         console.log('Project found:', project[0]);
