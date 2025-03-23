@@ -6,7 +6,7 @@ import { RowDataPacket } from 'mysql2';
 interface ProjectRow extends RowDataPacket {
   id: number;
   name: string;
-  hourly_rate: number;
+  hourlyRate: number;
   start_date: Date;
   end_date: Date;
   user_id: number;
@@ -21,7 +21,7 @@ export class ProjectController {
       }
 
       const [projects] = await pool.query<ProjectRow[]>(
-        'SELECT id, name, hourly_rate, start_date, end_date FROM projects WHERE user_id = ?',
+        'SELECT id, name, hourlyRate, start_date, end_date FROM projects WHERE user_id = ?',
         [userId]
       );
 
@@ -41,7 +41,7 @@ export class ProjectController {
 
       const { id } = req.params;
       const [projects] = await pool.query<ProjectRow[]>(
-        'SELECT id, name, hourly_rate, start_date, end_date FROM projects WHERE id = ? AND user_id = ?',
+        'SELECT id, name, hourlyRate, start_date, end_date FROM projects WHERE id = ? AND user_id = ?',
         [id, userId]
       );
 
@@ -63,24 +63,24 @@ export class ProjectController {
         return res.status(401).json({ error: 'Niet geautoriseerd' });
       }
 
-      const { name, hourly_rate, start_date, end_date } = req.body;
-      console.log('Received project data:', { name, hourly_rate, start_date, end_date });
+      const { name, hourlyRate, start_date, end_date } = req.body;
+      console.log('Received project data:', { name, hourlyRate, start_date, end_date });
 
       // Valideer de data
-      if (!name || !hourly_rate || !start_date || !end_date) {
+      if (!name || !hourlyRate || !start_date || !end_date) {
         return res.status(400).json({ 
           error: 'Alle velden zijn verplicht',
-          received: { name, hourly_rate, start_date, end_date }
+          received: { name, hourlyRate, start_date, end_date }
         });
       }
 
       const [result] = await pool.query(
-        'INSERT INTO projects (name, hourly_rate, start_date, end_date, user_id) VALUES (?, ?, ?, ?, ?)',
-        [name, hourly_rate, new Date(start_date), new Date(end_date), userId]
+        'INSERT INTO projects (name, hourlyRate, start_date, end_date, user_id) VALUES (?, ?, ?, ?, ?)',
+        [name, hourlyRate, new Date(start_date), new Date(end_date), userId]
       );
 
       const [newProject] = await pool.query<ProjectRow[]>(
-        'SELECT id, name, hourly_rate, start_date, end_date FROM projects WHERE id = ?',
+        'SELECT id, name, hourlyRate, start_date, end_date FROM projects WHERE id = ?',
         [(result as any).insertId]
       );
 
@@ -99,13 +99,13 @@ export class ProjectController {
       }
 
       const { id } = req.params;
-      const { name, hourly_rate, start_date, end_date } = req.body;
+      const { name, hourlyRate, start_date, end_date } = req.body;
 
       // Valideer de data
-      if (!name || !hourly_rate || !start_date || !end_date) {
+      if (!name || !hourlyRate || !start_date || !end_date) {
         return res.status(400).json({ 
           error: 'Alle velden zijn verplicht',
-          received: { name, hourly_rate, start_date, end_date }
+          received: { name, hourlyRate, start_date, end_date }
         });
       }
 
@@ -121,13 +121,13 @@ export class ProjectController {
 
       // Update het project
       await pool.query(
-        'UPDATE projects SET name = ?, hourly_rate = ?, start_date = ?, end_date = ? WHERE id = ? AND user_id = ?',
-        [name, hourly_rate, new Date(start_date), new Date(end_date), id, userId]
+        'UPDATE projects SET name = ?, hourlyRate = ?, start_date = ?, end_date = ? WHERE id = ? AND user_id = ?',
+        [name, hourlyRate, new Date(start_date), new Date(end_date), id, userId]
       );
 
       // Haal het bijgewerkte project op
       const [updatedProject] = await pool.query<ProjectRow[]>(
-        'SELECT id, name, hourly_rate, start_date, end_date FROM projects WHERE id = ?',
+        'SELECT id, name, hourlyRate, start_date, end_date FROM projects WHERE id = ?',
         [id]
       );
 

@@ -14,7 +14,6 @@
   "include": ["src/**/*"],
   "exclude": [
     "node_modules",
-    "src/config/runMigrations.ts",
-    "src/routes/userRoutes.ts"
+    "src/config/runMigrations.ts"
   ]
 } 

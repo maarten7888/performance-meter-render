@@ -45,22 +45,26 @@ export const authenticateToken = async (req: Request, res: Response, next: NextF
     console.log('Debug: Geverifieerde token data:', decoded);
     
     // Controleer verplichte velden
-    if (!decoded.userId || !decoded.email) {
+    if (!decoded.userId && !decoded.id || !decoded.email) {
       console.error('Debug: Ontbrekende verplichte velden in token:', {
         hasUserId: !!decoded.userId,
+        hasId: !!decoded.id,
         hasEmail: !!decoded.email
       });
       return res.status(401).json({ message: 'Ongeldig token formaat' });
     }
     
+    // Gebruik userId of id uit token
+    const userId = decoded.userId || decoded.id;
+    
     // Gebruiker ophalen uit database
     const [users] = await pool.query(
       'SELECT id, email, role FROM users WHERE id = ?',
-      [decoded.userId]
+      [userId]
     );
     
     if (!(users as any[]).length) {
-      console.log('Debug: Gebruiker niet gevonden in database voor id:', decoded.userId);
+      console.log('Debug: Gebruiker niet gevonden in database voor id:', userId);
       return res.status(401).json({ message: 'Ongeldige gebruiker' });
     }
 

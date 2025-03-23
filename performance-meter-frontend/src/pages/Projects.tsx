@@ -212,9 +212,9 @@ const Projects = () => {
         // Update bestaand project
         await api.put(`/api/projects/${editingProject.id}`, {
           name: newProject.name,
-          hourlyRate: newProject.hourlyRate,
-          startDate: newProject.startDate?.toISOString().split('T')[0],
-          endDate: newProject.endDate?.toISOString().split('T')[0],
+          hourly_rate: newProject.hourlyRate,
+          start_date: newProject.startDate?.toISOString().split('T')[0],
+          end_date: newProject.endDate?.toISOString().split('T')[0],
         });
 
         // Update de projecten lijst met het bijgewerkte project
