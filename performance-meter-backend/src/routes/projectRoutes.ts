@@ -94,6 +94,15 @@ router.delete('/:id', authenticateToken, async (req: AuthRequest, res) => {
 
 // Ophalen van een individueel project
 router.get('/:id', authenticateToken, async (req: AuthRequest, res) => {
+    console.log('=== GET Single Project Route Hit ===');
+    console.log('Request method:', req.method);
+    console.log('Request path:', req.path);
+    console.log('Request params:', req.params);
+    console.log('Request headers:', req.headers);
+    console.log('User:', req.user);
+    console.log('Project ID:', req.params.id);
+    console.log('=====================');
+    
     try {
         if (!req.user?.id) {
             return res.status(401).json({ error: 'Niet geautoriseerd' });
