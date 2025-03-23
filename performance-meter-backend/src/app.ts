@@ -6,6 +6,7 @@ import authRoutes from './routes/authRoutes';
 import timeEntryRoutes from './routes/timeEntryRoutes';
 import userRoutes from './routes/userRoutes';
 import consultantProfileRoutes from './routes/consultantProfileRoutes';
+import projectRoutes from './routes/projectRoutes';
 import path from 'path';
 
 dotenv.config();
@@ -28,7 +29,8 @@ const corsOptions = {
   ],
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
-  credentials: true
+  credentials: true,
+  optionsSuccessStatus: 200 // Toegevoegd voor OPTIONS requests
 };
 
 console.log('[App] Middleware configureren...');
@@ -38,13 +40,14 @@ app.use(cors(corsOptions));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Debug middleware
+// Debug middleware voor ALLE requests
 app.use((req, res, next) => {
   console.log(`[${new Date().toISOString()}] ${req.method} ${req.url}`);
   console.log('[Debug] Headers:', JSON.stringify(req.headers, null, 2));
   console.log('[Debug] Path:', req.path);
   console.log('[Debug] Base URL:', req.baseUrl);
   console.log('[Debug] Original URL:', req.originalUrl);
+  console.log('[Debug] Method:', req.method);
   if (req.body && Object.keys(req.body).length > 0) {
     console.log('[Debug] Body:', JSON.stringify(req.body, null, 2));
   }
@@ -82,6 +85,10 @@ app.use('/api/users', userRoutes);
 console.log('[App] Consultant profile routes registreren...');
 app.use('/api/consultant-profiles', consultantProfileRoutes);
 
+console.log('[App] Project routes registreren...');
+app.use('/api/projects', projectRoutes);
+console.log('[App] Project routes geregistreerd');
+
 // Logging middleware - must appear after route registration
 app.use((req, res, next) => {
   console.log(`[Post-Registration] ${req.method} ${req.path} reached`);
@@ -102,7 +109,7 @@ app.use((req, res) => {
   console.log('[404] Method:', req.method);
   console.log('[404] Path:', req.path);
   console.log('[404] Query:', req.query);
-  res.status(404).json({ message });
+  res.status(404).json({ error: message });
 });
 
 // Error handling middleware
