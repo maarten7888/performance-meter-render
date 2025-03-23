@@ -98,8 +98,17 @@ console.log('[App] Consultant profile routes geregistreerd');
 // Log alle geregistreerde routes
 console.log('[App] Alle routes geregistreerd');
 app._router.stack.forEach((r: any) => {
-    if (r.route && r.route.path) {
+    if (r.route) {
+        // Routes zonder parameters
         console.log(`[App] Route geregistreerd: ${Object.keys(r.route.methods)} ${r.route.path}`);
+    } else if (r.name === 'router') {
+        // Routes met parameters
+        console.log(`[App] Router geregistreerd: ${r.regexp}`);
+        r.handle.stack.forEach((handler: any) => {
+            if (handler.route) {
+                console.log(`[App] Parameter route geregistreerd: ${Object.keys(handler.route.methods)} ${handler.route.path}`);
+            }
+        });
     }
 });
 
