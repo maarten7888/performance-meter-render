@@ -1,13 +1,22 @@
 import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
-import { pool } from './config/database';
+import { pool, query } from './config/database';
+import { authenticateToken, AuthRequest } from './middleware/auth';
 import authRoutes from './routes/authRoutes';
 import timeEntryRoutes from './routes/timeEntryRoutes';
 import userRoutes from './routes/userRoutes';
 import consultantProfileRoutes from './routes/consultantProfileRoutes';
 import projectRoutes from './routes/projectRoutes';
 import path from 'path';
+
+// Debug logging voor imports
+console.log('[App] Start imports...');
+console.log('[App] Current directory:', process.cwd());
+console.log('[App] __dirname:', __dirname);
+
+console.log('[App] Imports voltooid');
+console.log('[App] Project routes module:', projectRoutes);
 
 dotenv.config();
 
@@ -55,82 +64,109 @@ app.use((req, res, next) => {
 });
 
 console.log('[App] Routes registreren...');
-
-// Handle OPTIONS requests for CORS
-app.options('*', cors(corsOptions));
-
-// ======== DIRECT ROUTES WITHOUT ROUTER MIDDLEWARE =========
-
-// Root health check
-app.get('/', (req, res) => {
-  console.log('[Root] Root route aangeroepen');
-  res.json({ message: 'Welcome to Performance Meter API' });
-});
-
-// ======== ROUTER REGISTRATION =========
-
-// API routes
-console.log('[App] Routes registreren...');
 console.log('[App] Base URL:', '/api');
 
-console.log('[App] Auth routes registreren...');
-app.use('/api/auth', authRoutes);
+// Test DELETE route
+app.delete('/api/projects/:id', authenticateToken, async (req: AuthRequest, res) => {
+    console.log('=== Direct DELETE Route Hit ===');
+    console.log('Request method:', req.method);
+    console.log('Request path:', req.path);
+    console.log('Request params:', req.params);
+    console.log('Request headers:', req.headers);
+    console.log('User:', req.user);
+    console.log('=====================');
+    
+    try {
+        if (!req.user?.id) {
+            console.error('User ID is missing in request');
+            return res.status(401).json({ error: 'Niet geautoriseerd' });
+        }
 
-console.log('[App] Time entry routes registreren...');
-app.use('/api/time-entries', timeEntryRoutes);
+        const { id } = req.params;
+        console.log('Attempting to delete project:', { id, userId: req.user.id });
 
-console.log('[App] User routes registreren...');
-app.use('/api/users', userRoutes);
+        // Controleer eerst of het project bestaat en van de juiste gebruiker is
+        console.log('Checking if project exists and belongs to user...');
+        const project = await query(
+            'SELECT id FROM projects WHERE id = ? AND user_id = ?',
+            [id, req.user.id]
+        );
+        console.log('Project check result:', project);
 
-console.log('[App] Consultant profile routes registreren...');
-app.use('/api/consultant-profiles', consultantProfileRoutes);
+        if (!(project as any[]).length) {
+            console.log('Project not found or unauthorized:', { id, userId: req.user.id });
+            return res.status(404).json({ error: 'Project niet gevonden of niet geautoriseerd' });
+        }
 
-console.log('[App] Project routes registreren...');
+        // Controleer of er tijdregistraties zijn voor dit project
+        console.log('Checking for time entries...');
+        const timeEntries = await query(
+            'SELECT COUNT(*) as count FROM time_entries WHERE project_id = ?',
+            [id]
+        );
+        console.log('Time entries check result:', timeEntries);
+
+        if ((timeEntries as any[])[0]?.count > 0) {
+            console.log('Cannot delete project with time entries:', { id, count: (timeEntries as any[])[0].count });
+            return res.status(400).json({ 
+                error: 'Kan project niet verwijderen omdat er tijdregistraties aan gekoppeld zijn' 
+            });
+        }
+
+        // Verwijder het project
+        console.log('Executing delete query...');
+        const result = await query(
+            'DELETE FROM projects WHERE id = ? AND user_id = ?',
+            [id, req.user.id]
+        );
+        console.log('Delete query result:', result);
+
+        if ((result as any).affectedRows === 0) {
+            console.log('No rows affected when deleting project:', { id, userId: req.user.id });
+            return res.status(404).json({ error: 'Project niet gevonden of niet geautoriseerd' });
+        }
+
+        console.log('Project successfully deleted:', { id, userId: req.user.id });
+        res.json({ message: 'Project succesvol verwijderd' });
+    } catch (error) {
+        console.error('Error deleting project:', error);
+        res.status(500).json({ error: 'Er is een fout opgetreden bij het verwijderen van het project' });
+    }
+});
+
+// Project routes
+console.log('[App] Project routes registreren op /api/projects...');
 app.use('/api/projects', projectRoutes);
 console.log('[App] Project routes geregistreerd');
 
+// Auth routes
+console.log('[App] Auth routes registreren op /api/auth...');
+app.use('/api/auth', authRoutes);
+console.log('[App] Auth routes geregistreerd');
+
+// Time entry routes
+console.log('[App] Time entry routes registreren op /api/time-entries...');
+app.use('/api/time-entries', timeEntryRoutes);
+console.log('[App] Time entry routes geregistreerd');
+
+// User routes
+console.log('[App] User routes registreren op /api/users...');
+app.use('/api/users', userRoutes);
+console.log('[App] User routes geregistreerd');
+
+// Consultant profile routes
+console.log('[App] Consultant profile routes registreren op /api/consultant-profiles...');
+app.use('/api/consultant-profiles', consultantProfileRoutes);
+console.log('[App] Consultant profile routes geregistreerd');
+
+// Log alle geregistreerde routes
+console.log('[App] Alle routes geregistreerd');
+app._router.stack.forEach((r: any) => {
+    if (r.route && r.route.path) {
+        console.log(`[App] Route geregistreerd: ${Object.keys(r.route.methods)} ${r.route.path}`);
+    }
+});
+
 // Logging middleware - must appear after route registration
 app.use((req, res, next) => {
-  console.log(`[Post-Registration] ${req.method} ${req.path} reached`);
-  console.log('[Post-Registration] Base URL:', req.baseUrl);
-  console.log('[Post-Registration] Original URL:', req.originalUrl);
-  // Continue down the middleware chain
-  next();
-});
-
-// ======== ERROR HANDLING =========
-
-// 404 handler - must be AFTER all routes
-app.use((req, res) => {
-  const message = `Route niet gevonden: ${req.method} ${req.url}`;
-  console.log(`[${new Date().toISOString()}] 404 Not Found:`, message);
-  console.log('[404] Headers:', JSON.stringify(req.headers, null, 2));
-  console.log('[404] URL:', req.url);
-  console.log('[404] Method:', req.method);
-  console.log('[404] Path:', req.path);
-  console.log('[404] Query:', req.query);
-  res.status(404).json({ error: message });
-});
-
-// Error handling middleware
-app.use((err: Error, req: express.Request, res: express.Response, next: express.NextFunction) => {
-  console.error(`[${new Date().toISOString()}] Error:`, {
-    message: err.message,
-    stack: err.stack,
-    path: req.url,
-    method: req.method,
-    headers: req.headers
-  });
-  res.status(500).json({ message: 'Er is een fout opgetreden op de server' });
-});
-
-// Test database connection
-pool.query('SELECT 1')
-  .then(() => {
-    console.log('[Database] Connected successfully');
-  })
-  .catch((error: Error) => {
-    console.error('[Database] Connection error:', error);
-  });
-
-export default app; 
+  console.log(`
