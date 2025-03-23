@@ -53,26 +53,26 @@ router.get('/', authenticateToken, async (req: AuthRequest, res) => {
 router.get('/:id', authenticateToken, async (req: AuthRequest, res) => {
     try {
         if (!req.user?.id) {
-            console.error('User ID is missing in request');
             return res.status(401).json({ error: 'Niet geautoriseerd' });
         }
 
         const { id } = req.params;
-        const [project] = await pool.query<ProjectRow[]>(
+        const [projects] = await pool.query<ProjectRow[]>(
             'SELECT id, name, hourly_rate, start_date, end_date FROM projects WHERE id = ? AND user_id = ?',
             [id, req.user.id]
         );
 
-        if (!(project as any[]).length) {
+        if (!projects.length) {
             return res.status(404).json({ error: 'Project niet gevonden' });
         }
 
+        const project = projects[0];
         res.json({
-            id: project[0].id,
-            name: project[0].name,
-            hourlyRate: project[0].hourly_rate,
-            startDate: project[0].start_date,
-            endDate: project[0].end_date
+            id: project.id,
+            name: project.name,
+            hourlyRate: project.hourly_rate,
+            startDate: project.start_date,
+            endDate: project.end_date
         });
     } catch (error) {
         console.error('Error fetching project:', error);
