@@ -1,0 +1,120 @@
+{
+	"info": {
+		"_postman_id": "consultant-profile-endpoints",
+		"name": "Consultant Profile API",
+		"description": "Endpoints voor het beheren van consultant profielen",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Get Profile",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{jwt_token}}",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "https://performance-meter-render-6i1b.onrender.com/api/consultant-profiles/{{email}}",
+					"protocol": "https",
+					"host": ["performance-meter-render-6i1b.onrender.com"],
+					"path": ["api", "consultant-profiles", "{{email}}"]
+				},
+				"description": "Haalt het profiel op van een consultant op basis van email"
+			}
+		},
+		{
+			"name": "Create Profile",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{jwt_token}}",
+						"type": "text"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"email\": \"test@example.com\",\n    \"fullName\": \"Test User\",\n    \"phoneNumber\": \"0612345678\",\n    \"location\": \"Amsterdam\",\n    \"bio\": \"Een korte biografie\",\n    \"skills\": [\"JavaScript\", \"TypeScript\", \"React\"],\n    \"hobbies\": [\"Programmeren\", \"Lezen\"],\n    \"workExperience\": [\n        {\n            \"company\": \"Test Company\",\n            \"position\": \"Developer\",\n            \"period\": \"2020-2023\"\n        }\n    ],\n    \"education\": [\n        {\n            \"school\": \"Test University\",\n            \"degree\": \"Computer Science\",\n            \"year\": \"2020\"\n        }\n    ],\n    \"certifications\": [\"AWS Certified Developer\"],\n    \"languages\": [\"Nederlands\", \"Engels\"]\n}"
+				},
+				"url": {
+					"raw": "https://performance-meter-render-6i1b.onrender.com/api/consultant-profiles",
+					"protocol": "https",
+					"host": ["performance-meter-render-6i1b.onrender.com"],
+					"path": ["api", "consultant-profiles"]
+				},
+				"description": "Maakt een nieuw consultant profiel aan"
+			}
+		},
+		{
+			"name": "Update Profile",
+			"request": {
+				"method": "PUT",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{jwt_token}}",
+						"type": "text"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"fullName\": \"Updated Name\",\n    \"phoneNumber\": \"0687654321\",\n    \"location\": \"Rotterdam\",\n    \"bio\": \"Bijgewerkte biografie\",\n    \"skills\": [\"JavaScript\", \"TypeScript\", \"React\", \"Node.js\"],\n    \"hobbies\": [\"Programmeren\", \"Lezen\", \"Sporten\"],\n    \"workExperience\": [\n        {\n            \"company\": \"Test Company\",\n            \"position\": \"Senior Developer\",\n            \"period\": \"2020-2023\"\n        }\n    ],\n    \"education\": [\n        {\n            \"school\": \"Test University\",\n            \"degree\": \"Computer Science\",\n            \"year\": \"2020\"\n        }\n    ],\n    \"certifications\": [\"AWS Certified Developer\", \"Azure Certified\"],\n    \"languages\": [\"Nederlands\", \"Engels\", \"Duits\"]\n}"
+				},
+				"url": {
+					"raw": "https://performance-meter-render-6i1b.onrender.com/api/consultant-profiles/{{email}}",
+					"protocol": "https",
+					"host": ["performance-meter-render-6i1b.onrender.com"],
+					"path": ["api", "consultant-profiles", "{{email}}"]
+				},
+				"description": "Werkt een bestaand consultant profiel bij"
+			}
+		},
+		{
+			"name": "Delete Profile",
+			"request": {
+				"method": "DELETE",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{jwt_token}}",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "https://performance-meter-render-6i1b.onrender.com/api/consultant-profiles/{{email}}",
+					"protocol": "https",
+					"host": ["performance-meter-render-6i1b.onrender.com"],
+					"path": ["api", "consultant-profiles", "{{email}}"]
+				},
+				"description": "Verwijdert een consultant profiel"
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "jwt_token",
+			"value": "YOUR_JWT_TOKEN_HERE",
+			"type": "string"
+		},
+		{
+			"key": "email",
+			"value": "test@example.com",
+			"type": "string"
+		}
+	]
+} 

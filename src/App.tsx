@@ -7,8 +7,10 @@ import LoginPage from './pages/LoginPage';
 import TimeRegistration from './pages/TimeRegistration';
 import Projects from './pages/Projects';
 import Dashboard from './pages/Dashboard';
-import Management from './pages/Management';
+import ConsultantProfile from './pages/ConsultantProfile';
+import UserManagement from './pages/UserManagement';
 import Layout from './components/Layout';
+import PrivateRoute from './components/PrivateRoute';
 
 // Import Montserrat font
 import '@fontsource/montserrat';
@@ -70,10 +72,19 @@ function App() {
                 </Layout>
               </PrivateRoute>
             } />
+            <Route path="/consultant-profile" element={
+              <PrivateRoute>
+                <Layout>
+                  <ConsultantProfile />
+                </Layout>
+              </PrivateRoute>
+            } />
             <Route path="/management" element={
-              <Layout>
-                <Management />
-              </Layout>
+              <PrivateRoute>
+                <Layout>
+                  <UserManagement />
+                </Layout>
+              </PrivateRoute>
             } />
           </Routes>
         </Router>

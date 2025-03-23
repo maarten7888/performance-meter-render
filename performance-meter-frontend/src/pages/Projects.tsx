@@ -175,13 +175,8 @@ const Projects = () => {
       const response = await api.get<Project[]>('/api/projects');
       console.log('Projects response:', response.data);
       setProjects(response.data);
-    } catch (error) {
-      console.error('Error fetching projects:', error);
-      if (error.response) {
-        console.error('Error response:', error.response.data);
-        console.error('Error status:', error.response.status);
-        console.error('Error headers:', error.response.headers);
-      }
+    } catch (err) {
+      console.error('Error fetching projects:', err);
     }
   };
 
@@ -227,14 +222,9 @@ const Projects = () => {
         endDate: null,
       });
       fetchProjects();
-    } catch (error) {
-      console.error('Error creating project:', error);
+    } catch (err) {
+      console.error('Error creating project:', err);
       setFormError('Er is een fout opgetreden bij het opslaan van het project');
-      if (error.response) {
-        console.error('Error response:', error.response.data);
-        console.error('Error status:', error.response.status);
-        console.error('Error headers:', error.response.headers);
-      }
     }
   };
 

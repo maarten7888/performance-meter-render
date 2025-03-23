@@ -7,9 +7,10 @@ import LoginPage from './pages/LoginPage';
 import TimeRegistration from './pages/TimeRegistration';
 import Projects from './pages/Projects';
 import Dashboard from './pages/Dashboard';
-import Layout from './components/Layout';
+import ConsultantProfile from './pages/ConsultantProfile';
 import UserManagement from './pages/UserManagement';
-import ConsultantProfilePage from './pages/ConsultantProfile';
+import Layout from './components/Layout';
+import PrivateRoute from './components/PrivateRoute';
 
 // Import Montserrat font
 import '@fontsource/montserrat';
@@ -41,25 +42,6 @@ const theme = createTheme({
     },
   },
 });
-
-const PrivateRoute: React.FC<{ children: React.ReactNode; requireAdmin?: boolean }> = ({ children, requireAdmin }) => {
-  const { isAuthenticated, loading, user } = useAuth();
-  const location = useLocation();
-
-  if (loading) {
-    return null;
-  }
-
-  if (!isAuthenticated) {
-    return <Navigate to="/login" state={{ from: location }} replace />;
-  }
-
-  if (requireAdmin && user?.role !== 'admin') {
-    return <Navigate to="/dashboard" replace />;
-  }
-
-  return <>{children}</>;
-};
 
 function App() {
   return (
@@ -93,7 +75,7 @@ function App() {
             <Route path="/consultant-profile" element={
               <PrivateRoute>
                 <Layout>
-                  <ConsultantProfilePage />
+                  <ConsultantProfile />
                 </Layout>
               </PrivateRoute>
             } />

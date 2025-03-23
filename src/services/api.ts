@@ -10,7 +10,7 @@ interface AuthResponse {
     user: User;
 }
 
-const API_URL = 'https://performance-meter-backend.onrender.com';
+const API_URL = 'https://performance-meter-render-6i1b.onrender.com';
 
 const api: AxiosInstance = axios.create({
     baseURL: API_URL,

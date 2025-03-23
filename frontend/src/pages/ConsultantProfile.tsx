@@ -17,7 +17,7 @@ import {
 } from '@mui/material';
 import { Edit as EditIcon, Add as AddIcon, Delete as DeleteIcon } from '@mui/icons-material';
 import { useAuth } from '../contexts/AuthContext';
-import { ConsultantProfile, ConsultantProfileFormData } from '../types/consultantProfile';
+import { ConsultantProfile, ConsultantProfileFormData, ConsultantProfileDB } from '../types/consultantProfile';
 import { api } from '../services/api';
 
 const ConsultantProfilePage: React.FC = () => {
@@ -25,70 +25,164 @@ const ConsultantProfilePage: React.FC = () => {
     const [profile, setProfile] = useState<ConsultantProfile | null>(null);
     const [isEditing, setIsEditing] = useState(false);
     const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
     const [formData, setFormData] = useState<ConsultantProfileFormData>({
         email: user?.email || '',
-        fullName: '',
-        title: '',
+        full_name: '',
+        phone_number: '',
+        location: '',
         bio: '',
-        strengths: [],
+        skills: [],
+        languages: [],
         hobbies: [],
-        experience: [],
+        work_experience: [],
         education: [],
         certifications: [],
-        profileImage: ''
+        newSkill: '',
+        newLanguage: '',
+        newCertification: '',
+        profileImage: '',
+        title: '',
+        strengths: []
     });
 
     useEffect(() => {
+        const fetchProfile = async () => {
+            if (!user?.email) return;
+            
+            try {
+                setError(null);
+                setLoading(true);
+                const data = await api.get(`/consultant-profile/${user.email}`);
+                
+                console.log('Raw data from server:', data);
+
+                // Converteer de backend data naar het frontend formaat
+                const processedProfile: ConsultantProfileFormData = {
+                    email: data.data.email,
+                    full_name: data.data.full_name || '',
+                    phone_number: data.data.phone_number || '',
+                    location: data.data.location || '',
+                    bio: data.data.bio || '',
+                    skills: data.data.skills ? JSON.parse(data.data.skills) : [],
+                    languages: data.data.languages ? JSON.parse(data.data.languages) : [],
+                    hobbies: data.data.hobbies ? JSON.parse(data.data.hobbies) : [],
+                    work_experience: data.data.work_experience ? JSON.parse(data.data.work_experience) : [],
+                    education: data.data.education ? JSON.parse(data.data.education) : [],
+                    certifications: data.data.certifications ? JSON.parse(data.data.certifications) : [],
+                    newSkill: '',
+                    newLanguage: '',
+                    newCertification: '',
+                    profileImage: data.data.profileImage || '',
+                    title: data.data.title || '',
+                    strengths: data.data.strengths ? JSON.parse(data.data.strengths) : []
+                };
+
+                console.log('Processed profile for display:', processedProfile);
+
+                // Update beide states met de verwerkte data
+                setProfile(processedProfile);
+                setFormData(processedProfile);
+            } catch (err: any) {
+                console.error('Error fetching profile:', err);
+                setError(err.message || 'Er is een fout opgetreden bij het ophalen van het profiel');
+            } finally {
+                setLoading(false);
+            }
+        };
+
         fetchProfile();
     }, [user?.email]);
 
-    const fetchProfile = async () => {
+    const handleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!user?.email) return;
+
         try {
-            if (user?.email) {
-                const response = await api.get(`/consultant-profile/${user.email}`);
-                setProfile(response.data);
-                setFormData(response.data);
-            }
-        } catch (error) {
-            console.error('Error fetching profile:', error);
+            setError(null);
+            setLoading(true);
+
+            // Converteer de frontend data naar het backend formaat
+            const dataToSend: ConsultantProfileDB = {
+                email: user.email,
+                full_name: String(formData.full_name || '').trim(),
+                phone_number: String(formData.phone_number || '').trim(),
+                location: String(formData.location || '').trim(),
+                bio: String(formData.bio || '').trim(),
+                skills: JSON.stringify(formData.skills || []),
+                languages: JSON.stringify(formData.languages || []),
+                hobbies: JSON.stringify(formData.hobbies || []),
+                work_experience: JSON.stringify(formData.work_experience || []),
+                education: JSON.stringify(formData.education || []),
+                certifications: JSON.stringify(formData.certifications || [])
+            };
+
+            console.log('Sending data to server:', dataToSend);
+
+            const updatedProfile = await api.put(`/consultant-profile/${user.email}`, dataToSend);
+            
+            console.log('Received response from server:', updatedProfile);
+
+            // Converteer de backend data terug naar het frontend formaat
+            const processedProfile: ConsultantProfileFormData = {
+                email: updatedProfile.data.email,
+                full_name: updatedProfile.data.full_name || '',
+                phone_number: updatedProfile.data.phone_number || '',
+                location: updatedProfile.data.location || '',
+                bio: updatedProfile.data.bio || '',
+                skills: updatedProfile.data.skills ? JSON.parse(updatedProfile.data.skills) : [],
+                languages: updatedProfile.data.languages ? JSON.parse(updatedProfile.data.languages) : [],
+                hobbies: updatedProfile.data.hobbies ? JSON.parse(updatedProfile.data.hobbies) : [],
+                work_experience: updatedProfile.data.work_experience ? JSON.parse(updatedProfile.data.work_experience) : [],
+                education: updatedProfile.data.education ? JSON.parse(updatedProfile.data.education) : [],
+                certifications: updatedProfile.data.certifications ? JSON.parse(updatedProfile.data.certifications) : [],
+                newSkill: '',
+                newLanguage: '',
+                newCertification: '',
+                profileImage: updatedProfile.data.profileImage || '',
+                title: updatedProfile.data.title || '',
+                strengths: updatedProfile.data.strengths ? JSON.parse(updatedProfile.data.strengths) : []
+            };
+
+            console.log('Processed profile for display:', processedProfile);
+
+            // Update beide states met de verwerkte data
+            setProfile(processedProfile);
+            setFormData(processedProfile);
+            setIsEditing(false);
+        } catch (err: any) {
+            console.error('Error updating profile:', err);
+            setError(err.message || 'Er is een fout opgetreden bij het bijwerken van het profiel');
         } finally {
             setLoading(false);
         }
     };
 
-    const handleSave = async () => {
-        try {
-            if (profile) {
-                await api.put(`/consultant-profile/${user?.email}`, formData);
-            } else {
-                await api.post('/consultant-profile', formData);
-            }
-            setProfile(formData);
-            setIsEditing(false);
-        } catch (error) {
-            console.error('Error saving profile:', error);
+    const handleAddItem = (field: keyof ConsultantProfileFormData) => {
+        if (Array.isArray(formData[field])) {
+            setFormData(prev => ({
+                ...prev,
+                [field]: [...(prev[field] as any[]), '']
+            }));
         }
     };
 
-    const handleAddItem = (field: keyof ConsultantProfileFormData) => {
-        setFormData(prev => ({
-            ...prev,
-            [field]: [...(prev[field] || []), '']
-        }));
-    };
-
     const handleRemoveItem = (field: keyof ConsultantProfileFormData, index: number) => {
-        setFormData(prev => ({
-            ...prev,
-            [field]: prev[field]?.filter((_, i) => i !== index)
-        }));
+        if (Array.isArray(formData[field])) {
+            setFormData(prev => ({
+                ...prev,
+                [field]: (prev[field] as any[]).filter((_, i) => i !== index)
+            }));
+        }
     };
 
     const handleItemChange = (field: keyof ConsultantProfileFormData, index: number, value: string) => {
-        setFormData(prev => ({
-            ...prev,
-            [field]: prev[field]?.map((item, i) => i === index ? value : item)
-        }));
+        if (Array.isArray(formData[field])) {
+            setFormData(prev => ({
+                ...prev,
+                [field]: (prev[field] as any[]).map((item, i) => i === index ? value : item)
+            }));
+        }
     };
 
     if (loading) {
@@ -118,7 +212,7 @@ const ConsultantProfilePage: React.FC = () => {
                         <Button
                             variant="contained"
                             color="primary"
-                            onClick={handleSave}
+                            onClick={handleSubmit}
                         >
                             Opslaan
                         </Button>
@@ -137,8 +231,8 @@ const ConsultantProfilePage: React.FC = () => {
                         <TextField
                             fullWidth
                             label="Volledige naam"
-                            value={formData.fullName}
-                            onChange={(e) => setFormData(prev => ({ ...prev, fullName: e.target.value }))}
+                            value={formData.full_name}
+                            onChange={(e) => setFormData(prev => ({ ...prev, full_name: e.target.value }))}
                             disabled={!isEditing}
                         />
                     </Grid>
@@ -174,6 +268,8 @@ const ConsultantProfilePage: React.FC = () => {
                                     <ListItemText>
                                         <TextField
                                             fullWidth
+                                            multiline
+                                            rows={2}
                                             value={strength}
                                             onChange={(e) => handleItemChange('strengths', index, e.target.value)}
                                             disabled={!isEditing}
@@ -186,58 +282,22 @@ const ConsultantProfilePage: React.FC = () => {
                                     )}
                                 </ListItem>
                             ))}
-                            {isEditing && (
-                                <ListItem>
-                                    <Button
-                                        startIcon={<AddIcon />}
-                                        onClick={() => handleAddItem('strengths')}
-                                    >
-                                        Toevoegen
-                                    </Button>
-                                </ListItem>
-                            )}
                         </List>
-                    </Grid>
-
-                    {/* Hobby's */}
-                    <Grid item xs={12}>
-                        <Typography variant="h6">Hobby's</Typography>
-                        <List>
-                            {formData.hobbies?.map((hobby, index) => (
-                                <ListItem key={index}>
-                                    <ListItemText>
-                                        <TextField
-                                            fullWidth
-                                            value={hobby}
-                                            onChange={(e) => handleItemChange('hobbies', index, e.target.value)}
-                                            disabled={!isEditing}
-                                        />
-                                    </ListItemText>
-                                    {isEditing && (
-                                        <IconButton onClick={() => handleRemoveItem('hobbies', index)}>
-                                            <DeleteIcon />
-                                        </IconButton>
-                                    )}
-                                </ListItem>
-                            ))}
-                            {isEditing && (
-                                <ListItem>
-                                    <Button
-                                        startIcon={<AddIcon />}
-                                        onClick={() => handleAddItem('hobbies')}
-                                    >
-                                        Toevoegen
-                                    </Button>
-                                </ListItem>
-                            )}
-                        </List>
+                        {isEditing && (
+                            <Button
+                                startIcon={<AddIcon />}
+                                onClick={() => handleAddItem('strengths')}
+                            >
+                                Toevoegen
+                            </Button>
+                        )}
                     </Grid>
 
                     {/* Ervaring */}
                     <Grid item xs={12}>
                         <Typography variant="h6">Ervaring</Typography>
                         <List>
-                            {formData.experience?.map((exp, index) => (
+                            {formData.work_experience?.map((exp, index) => (
                                 <ListItem key={index}>
                                     <ListItemText>
                                         <TextField
@@ -245,28 +305,26 @@ const ConsultantProfilePage: React.FC = () => {
                                             multiline
                                             rows={2}
                                             value={exp}
-                                            onChange={(e) => handleItemChange('experience', index, e.target.value)}
+                                            onChange={(e) => handleItemChange('work_experience', index, e.target.value)}
                                             disabled={!isEditing}
                                         />
                                     </ListItemText>
                                     {isEditing && (
-                                        <IconButton onClick={() => handleRemoveItem('experience', index)}>
+                                        <IconButton onClick={() => handleRemoveItem('work_experience', index)}>
                                             <DeleteIcon />
                                         </IconButton>
                                     )}
                                 </ListItem>
                             ))}
-                            {isEditing && (
-                                <ListItem>
-                                    <Button
-                                        startIcon={<AddIcon />}
-                                        onClick={() => handleAddItem('experience')}
-                                    >
-                                        Toevoegen
-                                    </Button>
-                                </ListItem>
-                            )}
                         </List>
+                        {isEditing && (
+                            <Button
+                                startIcon={<AddIcon />}
+                                onClick={() => handleAddItem('work_experience')}
+                            >
+                                Toevoegen
+                            </Button>
+                        )}
                     </Grid>
 
                     {/* Opleiding */}
@@ -292,17 +350,15 @@ const ConsultantProfilePage: React.FC = () => {
                                     )}
                                 </ListItem>
                             ))}
-                            {isEditing && (
-                                <ListItem>
-                                    <Button
-                                        startIcon={<AddIcon />}
-                                        onClick={() => handleAddItem('education')}
-                                    >
-                                        Toevoegen
-                                    </Button>
-                                </ListItem>
-                            )}
                         </List>
+                        {isEditing && (
+                            <Button
+                                startIcon={<AddIcon />}
+                                onClick={() => handleAddItem('education')}
+                            >
+                                Toevoegen
+                            </Button>
+                        )}
                     </Grid>
 
                     {/* Certificeringen */}
@@ -314,6 +370,8 @@ const ConsultantProfilePage: React.FC = () => {
                                     <ListItemText>
                                         <TextField
                                             fullWidth
+                                            multiline
+                                            rows={2}
                                             value={cert}
                                             onChange={(e) => handleItemChange('certifications', index, e.target.value)}
                                             disabled={!isEditing}
@@ -326,17 +384,15 @@ const ConsultantProfilePage: React.FC = () => {
                                     )}
                                 </ListItem>
                             ))}
-                            {isEditing && (
-                                <ListItem>
-                                    <Button
-                                        startIcon={<AddIcon />}
-                                        onClick={() => handleAddItem('certifications')}
-                                    >
-                                        Toevoegen
-                                    </Button>
-                                </ListItem>
-                            )}
                         </List>
+                        {isEditing && (
+                            <Button
+                                startIcon={<AddIcon />}
+                                onClick={() => handleAddItem('certifications')}
+                            >
+                                Toevoegen
+                            </Button>
+                        )}
                     </Grid>
                 </Grid>
             </Paper>
