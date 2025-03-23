@@ -15,10 +15,11 @@ export const getConsultantProfile = async (req: Request, res: Response) => {
         }
 
         const profile = rows[0];
-        // Convert string arrays back to arrays
-        profile.strengths = profile.strengths ? JSON.parse(profile.strengths) : [];
+        // Convert text fields back to arrays/objects
+        profile.skills = profile.skills ? JSON.parse(profile.skills) : [];
+        profile.languages = profile.languages ? JSON.parse(profile.languages) : [];
         profile.hobbies = profile.hobbies ? JSON.parse(profile.hobbies) : [];
-        profile.experience = profile.experience ? JSON.parse(profile.experience) : [];
+        profile.work_experience = profile.work_experience ? JSON.parse(profile.work_experience) : [];
         profile.education = profile.education ? JSON.parse(profile.education) : [];
         profile.certifications = profile.certifications ? JSON.parse(profile.certifications) : [];
 
@@ -33,31 +34,34 @@ export const createConsultantProfile = async (req: Request, res: Response) => {
     try {
         const profile: ConsultantProfileInput = req.body;
         
-        // Convert arrays to JSON strings
+        // Convert arrays/objects to JSON strings
         const profileData = {
             ...profile,
-            strengths: JSON.stringify(profile.strengths || []),
+            skills: JSON.stringify(profile.skills || []),
+            languages: JSON.stringify(profile.languages || []),
             hobbies: JSON.stringify(profile.hobbies || []),
-            experience: JSON.stringify(profile.experience || []),
+            work_experience: JSON.stringify(profile.work_experience || []),
             education: JSON.stringify(profile.education || []),
             certifications: JSON.stringify(profile.certifications || [])
         };
 
         await pool.query(
             `INSERT INTO consultant_profiles 
-            (email, full_name, title, bio, strengths, hobbies, experience, education, certifications, profile_image)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+            (email, full_name, phone_number, location, bio, 
+            skills, languages, hobbies, work_experience, education, certifications)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
             [
                 profileData.email,
-                profileData.fullName,
-                profileData.title,
+                profileData.full_name,
+                profileData.phone_number,
+                profileData.location,
                 profileData.bio,
-                profileData.strengths,
+                profileData.skills,
+                profileData.languages,
                 profileData.hobbies,
-                profileData.experience,
+                profileData.work_experience,
                 profileData.education,
-                profileData.certifications,
-                profileData.profileImage
+                profileData.certifications
             ]
         );
 
@@ -73,32 +77,34 @@ export const updateConsultantProfile = async (req: Request, res: Response) => {
         const { email } = req.params;
         const profile: ConsultantProfileInput = req.body;
 
-        // Convert arrays to JSON strings
+        // Convert arrays/objects to JSON strings
         const profileData = {
             ...profile,
-            strengths: JSON.stringify(profile.strengths || []),
+            skills: JSON.stringify(profile.skills || []),
+            languages: JSON.stringify(profile.languages || []),
             hobbies: JSON.stringify(profile.hobbies || []),
-            experience: JSON.stringify(profile.experience || []),
+            work_experience: JSON.stringify(profile.work_experience || []),
             education: JSON.stringify(profile.education || []),
             certifications: JSON.stringify(profile.certifications || [])
         };
 
         await pool.query(
             `UPDATE consultant_profiles 
-            SET full_name = ?, title = ?, bio = ?, strengths = ?, 
-                hobbies = ?, experience = ?, education = ?, 
-                certifications = ?, profile_image = ?
+            SET full_name = ?, phone_number = ?, location = ?, bio = ?, 
+                skills = ?, languages = ?, hobbies = ?, work_experience = ?, 
+                education = ?, certifications = ?
             WHERE email = ?`,
             [
-                profileData.fullName,
-                profileData.title,
+                profileData.full_name,
+                profileData.phone_number,
+                profileData.location,
                 profileData.bio,
-                profileData.strengths,
+                profileData.skills,
+                profileData.languages,
                 profileData.hobbies,
-                profileData.experience,
+                profileData.work_experience,
                 profileData.education,
                 profileData.certifications,
-                profileData.profileImage,
                 email
             ]
         );
