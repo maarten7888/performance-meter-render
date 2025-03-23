@@ -49,6 +49,50 @@ router.get('/', authenticateToken, async (req: AuthRequest, res) => {
     }
 });
 
+// Ophalen van een individueel project
+router.get('/:id', authenticateToken, async (req: AuthRequest, res) => {
+    console.log('=== GET Single Project Route Hit ===');
+    console.log('Request method:', req.method);
+    console.log('Request path:', req.path);
+    console.log('Request params:', req.params);
+    console.log('Request headers:', req.headers);
+    console.log('User:', req.user);
+    console.log('Project ID:', req.params.id);
+    console.log('=====================');
+    
+    try {
+        if (!req.user?.id) {
+            console.error('User ID is missing in request');
+            return res.status(401).json({ error: 'Niet geautoriseerd' });
+        }
+
+        const { id } = req.params;
+        console.log('Attempting to fetch project:', { id, userId: req.user.id });
+
+        const [project] = await pool.query<ProjectRow[]>(
+            'SELECT id, name, hourly_rate, start_date, end_date FROM projects WHERE id = ? AND user_id = ?',
+            [id, req.user.id]
+        );
+
+        if (!(project as any[]).length) {
+            console.log('Project not found or unauthorized:', { id, userId: req.user.id });
+            return res.status(404).json({ error: 'Project niet gevonden of niet geautoriseerd' });
+        }
+
+        console.log('Project found:', project[0]);
+        res.json({
+            id: project[0].id,
+            name: project[0].name,
+            hourlyRate: project[0].hourly_rate,
+            startDate: project[0].start_date,
+            endDate: project[0].end_date
+        });
+    } catch (error) {
+        console.error('Error fetching project:', error);
+        res.status(500).json({ error: 'Er is een fout opgetreden bij het ophalen van het project' });
+    }
+});
+
 // Aanmaken van een nieuw project
 router.post('/', authenticateToken, async (req: AuthRequest, res) => {
     try {
