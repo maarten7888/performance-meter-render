@@ -57,27 +57,29 @@ router.get('/:id', authenticateToken, async (req: AuthRequest, res) => {
         }
 
         const { id } = req.params;
-        const [projects] = await pool.query<ProjectRow[]>(
-            'SELECT id, name, hourly_rate, start_date, end_date FROM projects WHERE id = ? AND user_id = ?',
-            [id, req.user.id]
+        
+        // Eerst controleren of het project bestaat en van de gebruiker is
+        const [project] = await pool.query<ProjectRow[]>(
+            'SELECT id, name, hourly_rate, start_date, end_date FROM projects WHERE id = ?',
+            [id]
         );
 
-        // Gebruik dezelfde array mapping als de algemene route
-        const mappedProjects = projects.map((project: ProjectRow) => ({
-            id: project.id,
-            name: project.name,
-            hourlyRate: project.hourly_rate,
-            startDate: project.start_date,
-            endDate: project.end_date
-        }));
-
-        // Als er geen projecten zijn gevonden, geef 404
-        if (!mappedProjects.length) {
+        if (!(project as any[]).length) {
             return res.status(404).json({ error: 'Project niet gevonden' });
         }
 
-        // Geef het eerste (en enige) project terug
-        res.json(mappedProjects[0]);
+        // Dan controleren of het project van de gebruiker is
+        if (project[0].user_id !== req.user.id) {
+            return res.status(403).json({ error: 'Geen toegang tot dit project' });
+        }
+
+        res.json({
+            id: project[0].id,
+            name: project[0].name,
+            hourlyRate: project[0].hourly_rate,
+            startDate: project[0].start_date,
+            endDate: project[0].end_date
+        });
     } catch (error) {
         console.error('Error fetching project:', error);
         res.status(500).json({ error: 'Er is een fout opgetreden bij het ophalen van het project' });
