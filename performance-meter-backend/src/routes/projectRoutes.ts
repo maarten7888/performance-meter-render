@@ -1,5 +1,5 @@
 import express, { Request } from 'express';
-import { pool } from '../config/database';
+import { pool, query } from '../config/database';
 import { authenticateToken } from '../middleware/auth';
 import { RowDataPacket } from 'mysql2';
 
@@ -115,10 +115,12 @@ router.delete('/:id', authenticateToken, async (req: AuthRequest, res) => {
         console.log('Attempting to delete project:', { id, userId: req.user.id });
 
         // Controleer eerst of het project bestaat en van de juiste gebruiker is
-        const [project] = await pool.query(
+        console.log('Checking if project exists and belongs to user...');
+        const project = await query(
             'SELECT id FROM projects WHERE id = ? AND user_id = ?',
             [id, req.user.id]
         );
+        console.log('Project check result:', project);
 
         if (!(project as any[]).length) {
             console.log('Project not found or unauthorized:', { id, userId: req.user.id });
@@ -126,10 +128,12 @@ router.delete('/:id', authenticateToken, async (req: AuthRequest, res) => {
         }
 
         // Controleer of er tijdregistraties zijn voor dit project
-        const [timeEntries] = await pool.query(
+        console.log('Checking for time entries...');
+        const timeEntries = await query(
             'SELECT COUNT(*) as count FROM time_entries WHERE project_id = ?',
             [id]
         );
+        console.log('Time entries check result:', timeEntries);
 
         if ((timeEntries as any[])[0]?.count > 0) {
             console.log('Cannot delete project with time entries:', { id, count: (timeEntries as any[])[0].count });
@@ -139,10 +143,12 @@ router.delete('/:id', authenticateToken, async (req: AuthRequest, res) => {
         }
 
         // Verwijder het project
-        const [result] = await pool.query(
+        console.log('Executing delete query...');
+        const result = await query(
             'DELETE FROM projects WHERE id = ? AND user_id = ?',
             [id, req.user.id]
         );
+        console.log('Delete query result:', result);
 
         if ((result as any).affectedRows === 0) {
             console.log('No rows affected when deleting project:', { id, userId: req.user.id });
