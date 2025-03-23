@@ -66,75 +66,11 @@ app.use((req, res, next) => {
 console.log('[App] Routes registreren...');
 console.log('[App] Base URL:', '/api');
 
-// Test DELETE route
-app.delete('/api/projects/:id', authenticateToken, async (req: AuthRequest, res) => {
-    console.log('=== Direct DELETE Route Hit ===');
-    console.log('Request method:', req.method);
-    console.log('Request path:', req.path);
-    console.log('Request params:', req.params);
-    console.log('Request headers:', req.headers);
-    console.log('User:', req.user);
-    console.log('=====================');
-    
-    try {
-        if (!req.user?.id) {
-            console.error('User ID is missing in request');
-            return res.status(401).json({ error: 'Niet geautoriseerd' });
-        }
+// API routes
+console.log('[App] Routes registreren...');
+console.log('[App] Base URL:', '/api');
 
-        const { id } = req.params;
-        console.log('Attempting to delete project:', { id, userId: req.user.id });
-
-        // Controleer eerst of het project bestaat en van de juiste gebruiker is
-        console.log('Checking if project exists and belongs to user...');
-        const project = await query(
-            'SELECT id FROM projects WHERE id = ? AND user_id = ?',
-            [id, req.user.id]
-        );
-        console.log('Project check result:', project);
-
-        if (!(project as any[]).length) {
-            console.log('Project not found or unauthorized:', { id, userId: req.user.id });
-            return res.status(404).json({ error: 'Project niet gevonden of niet geautoriseerd' });
-        }
-
-        // Controleer of er tijdregistraties zijn voor dit project
-        console.log('Checking for time entries...');
-        const timeEntries = await query(
-            'SELECT COUNT(*) as count FROM time_entries WHERE project_id = ?',
-            [id]
-        );
-        console.log('Time entries check result:', timeEntries);
-
-        if ((timeEntries as any[])[0]?.count > 0) {
-            console.log('Cannot delete project with time entries:', { id, count: (timeEntries as any[])[0].count });
-            return res.status(400).json({ 
-                error: 'Kan project niet verwijderen omdat er tijdregistraties aan gekoppeld zijn' 
-            });
-        }
-
-        // Verwijder het project
-        console.log('Executing delete query...');
-        const result = await query(
-            'DELETE FROM projects WHERE id = ? AND user_id = ?',
-            [id, req.user.id]
-        );
-        console.log('Delete query result:', result);
-
-        if ((result as any).affectedRows === 0) {
-            console.log('No rows affected when deleting project:', { id, userId: req.user.id });
-            return res.status(404).json({ error: 'Project niet gevonden of niet geautoriseerd' });
-        }
-
-        console.log('Project successfully deleted:', { id, userId: req.user.id });
-        res.json({ message: 'Project succesvol verwijderd' });
-    } catch (error) {
-        console.error('Error deleting project:', error);
-        res.status(500).json({ error: 'Er is een fout opgetreden bij het verwijderen van het project' });
-    }
-});
-
-// Project routes
+// Project routes als eerste registreren
 console.log('[App] Project routes registreren op /api/projects...');
 app.use('/api/projects', projectRoutes);
 console.log('[App] Project routes geregistreerd');
@@ -169,4 +105,43 @@ app._router.stack.forEach((r: any) => {
 
 // Logging middleware - must appear after route registration
 app.use((req, res, next) => {
-  console.log(`
+  console.log(`[Post-Registration] ${req.method} ${req.path} reached`);
+  console.log('[Post-Registration] Base URL:', req.baseUrl);
+  console.log('[Post-Registration] Original URL:', req.originalUrl);
+  next();
+});
+
+// 404 handler - must be AFTER all routes
+app.use((req, res) => {
+  const message = `Route niet gevonden: ${req.method} ${req.url}`;
+  console.log(`[${new Date().toISOString()}] 404 Not Found:`, message);
+  console.log('[404] Headers:', JSON.stringify(req.headers, null, 2));
+  console.log('[404] URL:', req.url);
+  console.log('[404] Method:', req.method);
+  console.log('[404] Path:', req.path);
+  console.log('[404] Query:', req.query);
+  res.status(404).json({ error: message });
+});
+
+// Error handling middleware
+app.use((err: Error, req: express.Request, res: express.Response, next: express.NextFunction) => {
+  console.error(`[${new Date().toISOString()}] Error:`, {
+    message: err.message,
+    stack: err.stack,
+    path: req.url,
+    method: req.method,
+    headers: req.headers
+  });
+  res.status(500).json({ message: 'Er is een fout opgetreden op de server' });
+});
+
+// Test database connection
+pool.query('SELECT 1')
+  .then(() => {
+    console.log('[Database] Connected successfully');
+  })
+  .catch((error: Error) => {
+    console.error('[Database] Connection error:', error);
+  });
+
+export default app;
