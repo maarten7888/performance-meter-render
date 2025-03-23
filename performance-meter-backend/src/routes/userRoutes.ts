@@ -1,6 +1,6 @@
 import express, { Response, Request } from 'express';
 import { authenticateToken } from '../middleware/auth';
-import { User } from '../models/User';
+import { pool } from '../config/database';
 
 const router = express.Router();
 
@@ -9,18 +9,20 @@ router.get('/me', authenticateToken, async (req: Request, res: Response) => {
   try {
     console.log('Debug: Request user from token:', req.user);
 
-    const user = await User.findOne({
-      where: { id: req.user?.id },
-      attributes: ['id', 'email', 'role']
-    });
+    const [users] = await pool.query(
+      'SELECT id, email, role FROM users WHERE id = ?',
+      [req.user?.id]
+    );
 
-    if (!user) {
+    if (!(users as any[]).length) {
       console.log('Debug: No user found in database');
       return res.status(404).json({ error: 'Gebruiker niet gevonden' });
     }
 
+    const user = (users as any[])[0];
+
     // Debug logging voor database user
-    console.log('Debug: User from database:', user.toJSON());
+    console.log('Debug: User from database:', user);
 
     const userData = {
       id: user.id.toString(),
