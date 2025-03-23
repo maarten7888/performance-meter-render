@@ -103,6 +103,7 @@ router.delete('/:id', authenticateToken, async (req: AuthRequest, res) => {
     console.log('Request params:', req.params);
     console.log('Request headers:', req.headers);
     console.log('User:', req.user);
+    console.log('Project ID:', req.params.id);
     console.log('=====================');
     
     try {
