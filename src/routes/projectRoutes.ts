@@ -95,4 +95,58 @@ router.post('/', authenticateToken, async (req: AuthRequest, res) => {
     }
 });
 
+// Verwijderen van een project
+router.delete('/:id', authenticateToken, async (req: AuthRequest, res) => {
+    try {
+        if (!req.user?.id) {
+            console.error('User ID is missing in request');
+            return res.status(401).json({ error: 'Niet geautoriseerd' });
+        }
+
+        const { id } = req.params;
+        console.log('Attempting to delete project:', { id, userId: req.user.id });
+
+        // Controleer eerst of het project bestaat en van de juiste gebruiker is
+        const [project] = await db.query(
+            'SELECT id FROM projects WHERE id = ? AND user_id = ?',
+            [id, req.user.id]
+        );
+
+        if (!(project as any[]).length) {
+            console.log('Project not found or unauthorized:', { id, userId: req.user.id });
+            return res.status(404).json({ error: 'Project niet gevonden of niet geautoriseerd' });
+        }
+
+        // Controleer of er tijdregistraties zijn voor dit project
+        const [timeEntries] = await db.query(
+            'SELECT COUNT(*) as count FROM time_entries WHERE project_id = ?',
+            [id]
+        );
+
+        if ((timeEntries as any[])[0]?.count > 0) {
+            console.log('Cannot delete project with time entries:', { id, count: (timeEntries as any[])[0].count });
+            return res.status(400).json({ 
+                error: 'Kan project niet verwijderen omdat er tijdregistraties aan gekoppeld zijn' 
+            });
+        }
+
+        // Verwijder het project
+        const [result] = await db.query(
+            'DELETE FROM projects WHERE id = ? AND user_id = ?',
+            [id, req.user.id]
+        );
+
+        if ((result as any).affectedRows === 0) {
+            console.log('No rows affected when deleting project:', { id, userId: req.user.id });
+            return res.status(404).json({ error: 'Project niet gevonden of niet geautoriseerd' });
+        }
+
+        console.log('Project successfully deleted:', { id, userId: req.user.id });
+        res.json({ message: 'Project succesvol verwijderd' });
+    } catch (error) {
+        console.error('Error deleting project:', error);
+        res.status(500).json({ error: 'Er is een fout opgetreden bij het verwijderen van het project' });
+    }
+});
+
 export default router; 
