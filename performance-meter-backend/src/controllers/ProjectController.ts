@@ -39,14 +39,10 @@ export class ProjectController {
         return res.status(401).json({ error: 'Niet geautoriseerd' });
       }
 
-      const projectId = parseInt(req.params.id, 10);
-      if (isNaN(projectId)) {
-        return res.status(400).json({ error: 'Ongeldig project ID' });
-      }
-
+      const { id } = req.params;
       const [projects] = await pool.query<ProjectRow[]>(
         'SELECT id, name, hourly_rate, start_date, end_date FROM projects WHERE id = ? AND user_id = ?',
-        [projectId, userId]
+        [id, userId]
       );
 
       if (!projects.length) {
@@ -67,15 +63,20 @@ export class ProjectController {
         return res.status(401).json({ error: 'Niet geautoriseerd' });
       }
 
-      const { name, hourlyRate, startDate, endDate } = req.body;
+      const { name, hourly_rate, start_date, end_date } = req.body;
+      console.log('Received project data:', { name, hourly_rate, start_date, end_date });
 
-      if (!name || hourlyRate === undefined || !startDate || !endDate) {
-        return res.status(400).json({ error: 'Alle velden zijn verplicht' });
+      // Valideer de data
+      if (!name || !hourly_rate || !start_date || !end_date) {
+        return res.status(400).json({ 
+          error: 'Alle velden zijn verplicht',
+          received: { name, hourly_rate, start_date, end_date }
+        });
       }
 
       const [result] = await pool.query(
         'INSERT INTO projects (name, hourly_rate, start_date, end_date, user_id) VALUES (?, ?, ?, ?, ?)',
-        [name, hourlyRate, new Date(startDate), new Date(endDate), userId]
+        [name, hourly_rate, new Date(start_date), new Date(end_date), userId]
       );
 
       const [newProject] = await pool.query<ProjectRow[]>(
@@ -87,6 +88,53 @@ export class ProjectController {
     } catch (error) {
       console.error('Error creating project:', error);
       res.status(500).json({ error: 'Er is een fout opgetreden bij het aanmaken van het project' });
+    }
+  }
+
+  async updateProject(req: AuthRequest, res: Response) {
+    try {
+      const userId = req.user?.id;
+      if (!userId) {
+        return res.status(401).json({ error: 'Niet geautoriseerd' });
+      }
+
+      const { id } = req.params;
+      const { name, hourly_rate, start_date, end_date } = req.body;
+
+      // Valideer de data
+      if (!name || !hourly_rate || !start_date || !end_date) {
+        return res.status(400).json({ 
+          error: 'Alle velden zijn verplicht',
+          received: { name, hourly_rate, start_date, end_date }
+        });
+      }
+
+      // Controleer of het project bestaat en van de juiste gebruiker is
+      const [existingProject] = await pool.query<ProjectRow[]>(
+        'SELECT id FROM projects WHERE id = ? AND user_id = ?',
+        [id, userId]
+      );
+
+      if (!existingProject.length) {
+        return res.status(404).json({ error: 'Project niet gevonden' });
+      }
+
+      // Update het project
+      await pool.query(
+        'UPDATE projects SET name = ?, hourly_rate = ?, start_date = ?, end_date = ? WHERE id = ? AND user_id = ?',
+        [name, hourly_rate, new Date(start_date), new Date(end_date), id, userId]
+      );
+
+      // Haal het bijgewerkte project op
+      const [updatedProject] = await pool.query<ProjectRow[]>(
+        'SELECT id, name, hourly_rate, start_date, end_date FROM projects WHERE id = ?',
+        [id]
+      );
+
+      res.json(updatedProject[0]);
+    } catch (error) {
+      console.error('Error updating project:', error);
+      res.status(500).json({ error: 'Er is een fout opgetreden bij het bijwerken van het project' });
     }
   }
 
