@@ -62,18 +62,22 @@ router.get('/:id', authenticateToken, async (req: AuthRequest, res) => {
             [id, req.user.id]
         );
 
-        if (!projects.length) {
-            return res.status(404).json({ error: 'Project niet gevonden' });
-        }
-
-        const project = projects[0];
-        res.json({
+        // Gebruik dezelfde array mapping als de algemene route
+        const mappedProjects = projects.map((project: ProjectRow) => ({
             id: project.id,
             name: project.name,
             hourlyRate: project.hourly_rate,
             startDate: project.start_date,
             endDate: project.end_date
-        });
+        }));
+
+        // Als er geen projecten zijn gevonden, geef 404
+        if (!mappedProjects.length) {
+            return res.status(404).json({ error: 'Project niet gevonden' });
+        }
+
+        // Geef het eerste (en enige) project terug
+        res.json(mappedProjects[0]);
     } catch (error) {
         console.error('Error fetching project:', error);
         res.status(500).json({ error: 'Er is een fout opgetreden bij het ophalen van het project' });
