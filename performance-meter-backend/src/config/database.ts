@@ -30,5 +30,37 @@ export const pool = mysql.createPool({
   database: dbConfig.pathname.substr(1),
   ssl: {
     rejectUnauthorized: false
+  },
+  waitForConnections: true,
+  connectionLimit: 10,
+  queueLimit: 0,
+  enableKeepAlive: true,
+  keepAliveInitialDelay: 0,
+  connectTimeout: 10000
+});
+
+// Test de database verbinding
+pool.getConnection()
+  .then(connection => {
+    console.log('[Database] Successfully connected to database');
+    connection.release();
+  })
+  .catch(err => {
+    console.error('[Database] Error connecting to database:', err);
+  });
+
+// Voeg een error handler toe voor de pool
+pool.on('enqueue', () => {
+  console.error('[Database] Waiting for available connection slot');
+});
+
+// Voeg een error handler toe voor individuele queries
+export const query = async (sql: string, params: any[]) => {
+  try {
+    const [results] = await pool.query(sql, params);
+    return results;
+  } catch (error) {
+    console.error('[Database] Query error:', error);
+    throw error;
   }
-}); 
+}; 

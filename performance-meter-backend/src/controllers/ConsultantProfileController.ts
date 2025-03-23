@@ -1,5 +1,5 @@
 import { Response } from 'express';
-import { pool } from '../config/database';
+import { pool, query } from '../config/database';
 import { AuthRequest } from '../types/express';
 
 export class ConsultantProfileController {
@@ -8,7 +8,7 @@ export class ConsultantProfileController {
       const { email } = req.params;
 
       // Haal het profiel op
-      const [profiles] = await pool.query(
+      const profiles = await query(
         `SELECT cp.*, u.email 
          FROM consultant_profiles cp 
          JOIN users u ON cp.userId = u.id 
@@ -48,7 +48,7 @@ export class ConsultantProfileController {
       const { firstName, lastName, email, phoneNumber, skills, languages, workExperience, education } = req.body;
 
       // Controleer of er al een profiel bestaat voor deze gebruiker
-      const [existingProfiles] = await pool.query(
+      const existingProfiles = await query(
         'SELECT id FROM consultant_profiles WHERE userId = ?',
         [userId]
       );
@@ -58,7 +58,7 @@ export class ConsultantProfileController {
       }
 
       const now = new Date();
-      const [result] = await pool.query(
+      const result = await query(
         `INSERT INTO consultant_profiles 
          (userId, firstName, lastName, email, phoneNumber, skills, languages, workExperience, education, createdAt, updatedAt) 
          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
@@ -80,7 +80,7 @@ export class ConsultantProfileController {
       const profileId = (result as any).insertId;
 
       // Haal het nieuwe profiel op
-      const [profiles] = await pool.query(
+      const profiles = await query(
         `SELECT cp.*, u.email 
          FROM consultant_profiles cp 
          JOIN users u ON cp.userId = u.id 
@@ -117,7 +117,7 @@ export class ConsultantProfileController {
       const { firstName, lastName, phoneNumber, skills, languages, workExperience, education } = req.body;
 
       // Controleer of het profiel bestaat en van de juiste gebruiker is
-      const [profiles] = await pool.query(
+      const profiles = await query(
         `SELECT cp.id 
          FROM consultant_profiles cp 
          JOIN users u ON cp.userId = u.id 
@@ -130,7 +130,7 @@ export class ConsultantProfileController {
       }
 
       const now = new Date();
-      await pool.query(
+      await query(
         `UPDATE consultant_profiles 
          SET firstName = ?, 
              lastName = ?, 
@@ -155,7 +155,7 @@ export class ConsultantProfileController {
       );
 
       // Haal het bijgewerkte profiel op
-      const [updatedProfiles] = await pool.query(
+      const updatedProfiles = await query(
         `SELECT cp.*, u.email 
          FROM consultant_profiles cp 
          JOIN users u ON cp.userId = u.id 
@@ -191,7 +191,7 @@ export class ConsultantProfileController {
       const { email } = req.params;
 
       // Controleer of het profiel bestaat en van de juiste gebruiker is
-      const [profiles] = await pool.query(
+      const profiles = await query(
         `SELECT cp.id 
          FROM consultant_profiles cp 
          JOIN users u ON cp.userId = u.id 
@@ -203,7 +203,7 @@ export class ConsultantProfileController {
         return res.status(404).json({ message: 'Profiel niet gevonden' });
       }
 
-      await pool.query(
+      await query(
         'DELETE FROM consultant_profiles WHERE id = ?',
         [(profiles as any[])[0].id]
       );
