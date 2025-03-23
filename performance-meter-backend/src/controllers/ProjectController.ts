@@ -36,16 +36,22 @@ export class ProjectController {
     try {
       const userId = req.user?.id;
       if (!userId) {
+        console.log('Debug: Geen userId gevonden in request');
         return res.status(401).json({ error: 'Niet geautoriseerd' });
       }
 
       const { id } = req.params;
+      console.log('Debug: Project ophalen voor:', { projectId: id, userId });
+
       const [projects] = await pool.query<ProjectRow[]>(
         'SELECT id, name, hourly_rate, start_date, end_date FROM projects WHERE id = ? AND user_id = ?',
         [id, userId]
       );
 
+      console.log('Debug: Project query resultaat:', projects);
+
       if (!projects.length) {
+        console.log('Debug: Project niet gevonden of geen toegang');
         return res.status(404).json({ error: 'Project niet gevonden' });
       }
 
