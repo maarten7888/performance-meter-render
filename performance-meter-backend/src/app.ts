@@ -66,6 +66,12 @@ app.use((req, res, next) => {
 console.log('[App] Routes registreren...');
 console.log('[App] Base URL:', '/api');
 
+// Test endpoint voor /api route
+app.get('/api/test', (req, res) => {
+  console.log('[App] Test endpoint hit');
+  res.json({ message: 'API test endpoint werkt!' });
+});
+
 // API routes
 console.log('[App] Routes registreren...');
 console.log('[App] Base URL:', '/api');
