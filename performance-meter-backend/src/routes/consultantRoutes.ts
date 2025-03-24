@@ -8,6 +8,8 @@ const consultantController = new ConsultantController();
 // Debug middleware
 router.use((req, res, next) => {
     console.log(`[Consultants Route] ${req.method} ${req.path}`);
+    console.log('[Consultants Route] Full URL:', req.originalUrl);
+    console.log('[Consultants Route] Base URL:', req.baseUrl);
     next();
 });
 
@@ -15,6 +17,12 @@ router.use((req, res, next) => {
 router.get('/test', (req, res) => {
     console.log('[Consultants Route] Test endpoint hit');
     res.json({ message: 'Consultants test endpoint werkt!' });
+});
+
+// Test endpoint met base path
+router.get('/', (req, res) => {
+    console.log('[Consultants Route] Root endpoint hit');
+    res.json({ message: 'Consultants root endpoint werkt!' });
 });
 
 // Alle routes vereisen authenticatie
