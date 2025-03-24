@@ -25,10 +25,12 @@ router.get('/', (req, res) => {
     res.json({ message: 'Consultants root endpoint werkt!' });
 });
 
+// GET endpoint zonder authenticatie voor testen
+router.get('/:id', consultantController.getConsultantById);
+
 // Alle routes hieronder vereisen authenticatie
 router.use(authenticateToken);
 
-router.get('/:id', consultantController.getConsultantById);
 router.put('/:id', consultantController.updateConsultant);
 router.delete('/:id', consultantController.deleteConsultant);
 router.post('/', consultantController.createConsultant);
