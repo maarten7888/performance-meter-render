@@ -1,5 +1,5 @@
 import express, { Router } from 'express';
-import { ConsultantController } from '../controllers/ConsultantController';
+import { ConsultantController } from '../controllers/consultantController';
 import { authenticateToken } from '../middleware/auth';
 
 const router: Router = express.Router();
@@ -28,7 +28,7 @@ router.get('/', (req, res) => {
 // Alle routes hieronder vereisen authenticatie
 router.use(authenticateToken);
 
-router.get('/:id', consultantController.getConsultant);
+router.get('/:id', consultantController.getConsultantById);
 router.put('/:id', consultantController.updateConsultant);
 router.delete('/:id', consultantController.deleteConsultant);
 router.post('/', consultantController.createConsultant);
