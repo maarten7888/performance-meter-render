@@ -8,6 +8,7 @@ const router = express.Router();
 router.get('/:id', authenticateToken, async (req, res) => {
     try {
         const consultantId = req.params.id;
+        console.log('[Consultants] Fetching consultant with ID:', consultantId);
         
         const query = `
             SELECT 
@@ -19,15 +20,21 @@ router.get('/:id', authenticateToken, async (req, res) => {
             WHERE c.id = ?
         `;
 
+        console.log('[Consultants] Executing query:', query);
+        console.log('[Consultants] With parameters:', [consultantId]);
+
         const [rows] = await pool.query(query, [consultantId]);
+        console.log('[Consultants] Query result:', rows);
 
         if (!Array.isArray(rows) || rows.length === 0) {
+            console.log('[Consultants] No consultant found');
             return res.status(404).json({ message: 'Consultant niet gevonden' });
         }
 
+        console.log('[Consultants] Found consultant:', rows[0]);
         res.json(rows[0]);
     } catch (error) {
-        console.error('Error fetching consultant:', error);
+        console.error('[Consultants] Error fetching consultant:', error);
         res.status(500).json({ message: 'Er is een fout opgetreden bij het ophalen van de consultant' });
     }
 });
