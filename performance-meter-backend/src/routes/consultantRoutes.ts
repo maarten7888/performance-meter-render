@@ -19,21 +19,18 @@ router.get('/test', (req, res) => {
     res.json({ message: 'Consultants test endpoint werkt!' });
 });
 
-// Test endpoint met base path
+// Root endpoint zonder authenticatie
 router.get('/', (req, res) => {
     console.log('[Consultants Route] Root endpoint hit');
     res.json({ message: 'Consultants root endpoint werkt!' });
 });
 
-// Alle routes vereisen authenticatie
+// Alle routes hieronder vereisen authenticatie
 router.use(authenticateToken);
 
-// Specifieke routes (met parameters) moeten VOOR algemene routes komen
-router.get('/:id', consultantController.getConsultant as express.RequestHandler);
-router.put('/:id', consultantController.updateConsultant as express.RequestHandler);
-router.delete('/:id', consultantController.deleteConsultant as express.RequestHandler);
-
-// Algemene routes
-router.post('/', consultantController.createConsultant as express.RequestHandler);
+router.get('/:id', consultantController.getConsultant);
+router.put('/:id', consultantController.updateConsultant);
+router.delete('/:id', consultantController.deleteConsultant);
+router.post('/', consultantController.createConsultant);
 
 export default router; 
