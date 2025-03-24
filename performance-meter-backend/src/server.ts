@@ -5,7 +5,9 @@ dotenv.config();
 
 const port = process.env.PORT || 3000;
 
+console.log('==========================================');
 console.log('[Server] Starting server...');
+console.log('==========================================');
 console.log(`[Server] Environment: ${process.env.NODE_ENV}`);
 console.log(`[Server] Port: ${port}`);
 console.log(`[Server] Current directory: ${process.cwd()}`);
@@ -13,11 +15,12 @@ console.log(`[Server] Node version: ${process.version}`);
 console.log(`[Server] Platform: ${process.platform}`);
 
 // Log all express route middleware
-console.log('[Server] Express app middleware:');
+console.log('\n[Server] Express app middleware:');
 app._router.stack.forEach((middleware: any, i: number) => {
-  console.log(`[Server] Middleware ${i}: ${middleware.name}`);
+  console.log(`\n[Server] Middleware ${i}: ${middleware.name}`);
   if (middleware.route) {
     console.log(`[Server] Route: ${middleware.route.path}`);
+    console.log(`[Server] Methods: ${Object.keys(middleware.route.methods).join(', ')}`);
   } else if (middleware.name === 'router') {
     console.log(`[Server] Router base path: ${middleware.regexp}`);
     middleware.handle.stack.forEach((handler: any, j: number) => {
@@ -42,7 +45,10 @@ process.on('unhandledRejection', (reason: any, promise: Promise<any>) => {
 });
 
 app.listen(port, () => {
+  console.log('\n==========================================');
   console.log(`[Server] Server is running on port ${port}`);
+  console.log('==========================================\n');
+  
   console.log('[Server] Available routes:');
   app._router.stack.forEach((middleware: any) => {
     if (middleware.route) {
