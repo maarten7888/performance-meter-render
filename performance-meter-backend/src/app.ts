@@ -7,7 +7,6 @@ import authRoutes from './routes/authRoutes';
 import projectRoutes from './routes/projectRoutes';
 import timeEntryRoutes from './routes/timeEntryRoutes';
 import userRoutes from './routes/userRoutes';
-import consultantRoutes from './routes/consultants';
 import path from 'path';
 
 // Debug logging voor imports
@@ -81,7 +80,6 @@ app.use('/api/auth', authRoutes);
 app.use('/api/projects', projectRoutes);
 app.use('/api/time-entries', timeEntryRoutes);
 app.use('/api/users', userRoutes);
-app.use('/api/consultants', consultantRoutes);
 
 // Log alle geregistreerde routes
 console.log('[App] Alle routes geregistreerd');
