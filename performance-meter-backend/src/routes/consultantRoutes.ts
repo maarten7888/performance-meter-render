@@ -1,8 +1,8 @@
-import express, { Router } from 'express';
-import { ConsultantController } from '../controllers/consultantController';
+import express from 'express';
+import { ConsultantController } from '../controllers/ConsultantController';
 import { authenticateToken } from '../middleware/auth';
 
-const router: Router = express.Router();
+const router = express.Router();
 const consultantController = new ConsultantController();
 
 // Debug middleware
@@ -13,26 +13,27 @@ router.use((req, res, next) => {
     next();
 });
 
-// Test endpoint zonder authenticatie
+// Test endpoint
 router.get('/test', (req, res) => {
-    console.log('[Consultants Route] Test endpoint hit');
-    res.json({ message: 'Consultants test endpoint werkt!' });
+    res.json({ message: 'Consultant routes werken!' });
 });
 
-// Root endpoint zonder authenticatie
-router.get('/', (req, res) => {
-    console.log('[Consultants Route] Root endpoint hit');
-    res.json({ message: 'Consultants root endpoint werkt!' });
-});
+// GET consultant by ID (zonder authenticatie voor testen)
+router.get('/:id', consultantController.getConsultantById.bind(consultantController));
 
-// GET endpoint zonder authenticatie voor testen
-router.get('/:id', consultantController.getConsultantById);
-
-// Alle routes hieronder vereisen authenticatie
+// Beschermde routes
 router.use(authenticateToken);
 
-router.put('/:id', consultantController.updateConsultant);
-router.delete('/:id', consultantController.deleteConsultant);
-router.post('/', consultantController.createConsultant);
+// GET alle consultants
+router.get('/', consultantController.getAllConsultants.bind(consultantController));
+
+// POST nieuwe consultant
+router.post('/', consultantController.createConsultant.bind(consultantController));
+
+// PUT update consultant
+router.put('/:id', consultantController.updateConsultant.bind(consultantController));
+
+// DELETE consultant
+router.delete('/:id', consultantController.deleteConsultant.bind(consultantController));
 
 export default router; 
