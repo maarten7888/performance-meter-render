@@ -18,7 +18,6 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import MenuIcon from '@mui/icons-material/Menu';
 import LogoutIcon from '@mui/icons-material/Logout';
-import PersonIcon from '@mui/icons-material/Person';
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -44,7 +43,6 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
     { text: 'Dashboard', path: '/' },
     { text: 'Urenregistratie', path: '/time-registration' },
     { text: 'Projecten', path: '/projects' },
-    { text: 'Profiel', path: '/consultant-profile', icon: <PersonIcon /> },
     { text: 'Beheer', path: '/management' },
   ];
 
@@ -57,7 +55,6 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
             key={item.text} 
             onClick={() => navigate(item.path)}
           >
-            {item.icon && <Box sx={{ mr: 1 }}>{item.icon}</Box>}
             <ListItemText primary={item.text} />
           </ListItem>
         ))}
@@ -107,7 +104,6 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                   key={item.text} 
                   color="inherit" 
                   onClick={() => navigate(item.path)}
-                  startIcon={item.icon}
                 >
                   {item.text}
                 </Button>

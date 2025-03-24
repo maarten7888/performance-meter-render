@@ -7,15 +7,12 @@ export interface User {
 }
 
 export interface Project {
-    id: string;
+    id: number;
     name: string;
-    description: string;
+    hourlyRate: number;
     startDate: string;
     endDate: string;
-    status: 'active' | 'expired';
-    consultantId: string;
-    createdAt: string;
-    updatedAt: string;
+    user_id: number;
 }
 
 export interface TimeEntry {
@@ -40,4 +37,11 @@ export interface RegisterData {
     firstName: string;
     lastName: string;
     role: string;
+}
+
+export interface ProjectFormData {
+    name: string;
+    hourlyRate: number;
+    start_date: string;
+    end_date: string;
 } 

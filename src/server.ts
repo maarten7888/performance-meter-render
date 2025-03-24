@@ -31,6 +31,17 @@ app.use('/api/projects', projectRoutes);
 app.use('/api/time-entries', timeEntryRoutes);
 app.use('/api/consultant-profiles', consultantProfileRoutes);
 
+// Debug routes
+app.get('/debug/routes', (req, res) => {
+    const routes = app._router.stack
+        .filter((r: any) => r.route)
+        .map((r: any) => ({
+            path: r.route.path,
+            methods: Object.keys(r.route.methods)
+        }));
+    res.json(routes);
+});
+
 // Basic route
 app.get('/', (req, res) => {
   res.json({ message: 'Welcome to Performance Meter API' });

@@ -37,6 +37,8 @@ import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import api from '../services/api';
 import { useAuth } from '../contexts/AuthContext';
+import { Project, ProjectFormData } from '../types';
+import { format } from 'date-fns';
 
 const StyledPaper = styled(Paper)(({ theme }) => ({
   marginTop: theme.spacing(4),
@@ -117,19 +119,22 @@ const StyledDatePicker = styled(DatePicker)({
   },
 });
 
-interface Project {
-  id: number;
-  name: string;
-  hourlyRate: number;
-  startDate: string;
-  endDate: string;
-}
-
 interface NewProject {
   name: string;
   hourlyRate: number;
   startDate: Date | null;
   endDate: Date | null;
+}
+
+interface ApiResponse {
+  id: number;
+  name: string;
+  hourly_rate: number;
+  start_date: string;
+  end_date: string;
+  user_id: number;
+  created_at: string;
+  updated_at: string;
 }
 
 const Projects = () => {
@@ -190,65 +195,85 @@ const Projects = () => {
 
   const fetchProjects = async () => {
     try {
-      // Debug logging voor request
-      console.log('=== Fetching Projects ===');
-      console.log('Making request with headers:', {
-        Authorization: `Bearer ${localStorage.getItem('token')}`,
-        'Content-Type': 'application/json'
-      });
-
       const response = await api.get<Project[]>('/api/projects');
       console.log('Projects response:', response.data);
-      setProjects(response.data);
+      
+      // Format dates safely
+      const formattedProjects = response.data.map(project => ({
+        ...project,
+        hourlyRate: Number(project.hourlyRate),
+        startDate: project.startDate,
+        endDate: project.endDate
+      }));
+      
+      setProjects(formattedProjects);
     } catch (err) {
       console.error('Error fetching projects:', err);
       setError('Er is een fout opgetreden bij het ophalen van de projecten.');
     }
   };
 
+  const formatDate = (dateString: string | null) => {
+    if (!dateString) return '-';
+    try {
+      const date = new Date(dateString);
+      if (isNaN(date.getTime())) return '-';
+      return date.toLocaleDateString('nl-NL', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+      });
+    } catch (error) {
+      console.error('Error formatting date:', error);
+      return '-';
+    }
+  };
+
+  const formatCurrency = (amount: number) => {
+    return new Intl.NumberFormat('nl-NL', {
+      style: 'currency',
+      currency: 'EUR',
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2
+    }).format(amount);
+  };
+
   const handleSubmit = async () => {
     try {
+      if (!newProject.name || !newProject.hourlyRate || !newProject.startDate || !newProject.endDate) {
+        setFormError('Alle velden zijn verplicht');
+        return;
+      }
+
       if (editingProject) {
         // Update bestaand project
-        await api.put(`/api/projects/${editingProject.id}`, {
+        const updateData = {
           name: newProject.name,
-          hourly_rate: newProject.hourlyRate,
-          start_date: newProject.startDate?.toISOString().split('T')[0],
-          end_date: newProject.endDate?.toISOString().split('T')[0],
-        });
+          hourlyRate: newProject.hourlyRate,
+          startDate: newProject.startDate.toISOString().split('T')[0],
+          endDate: newProject.endDate.toISOString().split('T')[0],
+        };
+        console.log('Sending update data:', updateData);
+        const response = await api.put<Project>(`/api/projects/${editingProject.id}`, updateData);
 
         // Update de projecten lijst met het bijgewerkte project
         setProjects(projects.map(project => 
-          project.id === editingProject.id 
-            ? {
-                ...project,
-                name: newProject.name,
-                hourlyRate: newProject.hourlyRate,
-                startDate: newProject.startDate?.toISOString().split('T')[0] || '',
-                endDate: newProject.endDate?.toISOString().split('T')[0] || '',
-              }
-            : project
+          project.id === editingProject.id ? response.data : project
         ));
 
         setSuccess('Project succesvol bijgewerkt');
       } else {
         // Maak nieuw project aan
-        const response = await api.post<Project>('/api/projects', {
+        const createData = {
           name: newProject.name,
           hourlyRate: newProject.hourlyRate,
-          startDate: newProject.startDate?.toISOString().split('T')[0],
-          endDate: newProject.endDate?.toISOString().split('T')[0],
-        });
-
-        const newProjectData: Project = {
-          id: response.data.id,
-          name: newProject.name,
-          hourlyRate: newProject.hourlyRate,
-          startDate: newProject.startDate?.toISOString().split('T')[0] || '',
-          endDate: newProject.endDate?.toISOString().split('T')[0] || '',
+          startDate: newProject.startDate.toISOString().split('T')[0],
+          endDate: newProject.endDate.toISOString().split('T')[0],
         };
+        console.log('Sending create data:', createData);
+        const response = await api.post<Project>('/api/projects', createData);
 
-        setProjects([...projects, newProjectData]);
+        setProjects([...projects, response.data]);
         setSuccess('Project succesvol aangemaakt');
       }
 
@@ -269,13 +294,13 @@ const Projects = () => {
     }
   };
 
-  const handleEditClick = (project: Project) => {
+  const handleEdit = (project: Project) => {
     setEditingProject(project);
     setNewProject({
       name: project.name,
       hourlyRate: project.hourlyRate,
-      startDate: new Date(project.startDate),
-      endDate: new Date(project.endDate),
+      startDate: project.startDate ? new Date(project.startDate) : null,
+      endDate: project.endDate ? new Date(project.endDate) : null,
     });
     setOpen(true);
   };
@@ -321,62 +346,55 @@ const Projects = () => {
     endDate: '20%',
   };
 
-  const ProjectsTable = ({ projects, title }: { projects: Project[], title: string }) => (
-    <Box mb={4}>
-      <Typography variant="h6" color="white" gutterBottom>
+  const ProjectTable = ({ projects, title }: { projects: Project[], title: string }) => (
+    <>
+      <Typography variant="h6" style={{ marginTop: '2rem', marginBottom: '1rem' }}>
         {title}
       </Typography>
-      <TableContainer>
+      <TableContainer component={Paper} sx={{ 
+        backgroundColor: 'transparent',
+        '& .MuiTable-root': {
+          '& .MuiTableCell-root': {
+            color: 'white',
+            borderBottom: 'none',
+            padding: '16px 8px',
+          },
+          '& .MuiTableHead-root .MuiTableCell-root': {
+            color: 'rgba(255, 255, 255, 0.7)',
+          }
+        }
+      }}>
         <Table>
           <TableHead>
             <TableRow>
-              <StyledTableCell width={columnWidths.name}>Naam</StyledTableCell>
-              <StyledTableCell width={columnWidths.hourlyRate}>Uurtarief</StyledTableCell>
-              <StyledTableCell width={columnWidths.startDate}>Startdatum</StyledTableCell>
-              <StyledTableCell width={columnWidths.endDate}>Einddatum</StyledTableCell>
-              <StyledTableCell>Acties</StyledTableCell>
+              <TableCell sx={{ width: '40%' }}>Naam</TableCell>
+              <TableCell sx={{ width: '15%', textAlign: 'right' }}>Uurtarief</TableCell>
+              <TableCell sx={{ width: '15%', textAlign: 'right' }}>Startdatum</TableCell>
+              <TableCell sx={{ width: '15%', textAlign: 'right' }}>Einddatum</TableCell>
+              <TableCell sx={{ width: '15%', textAlign: 'right' }}>Acties</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
             {projects.map((project) => (
               <TableRow key={project.id}>
-                <StyledTableCell width={columnWidths.name}>{project.name}</StyledTableCell>
-                <StyledTableCell width={columnWidths.hourlyRate}>€{project.hourlyRate}</StyledTableCell>
-                <StyledTableCell width={columnWidths.startDate}>
-                  {new Date(project.startDate).toLocaleDateString('nl-NL')}
-                </StyledTableCell>
-                <StyledTableCell width={columnWidths.endDate}>
-                  {new Date(project.endDate).toLocaleDateString('nl-NL')}
-                </StyledTableCell>
-                <StyledTableCell>
-                  <IconButton 
-                    size="small" 
-                    onClick={() => handleEditClick(project)}
-                    sx={{ color: 'white' }}
-                  >
+                <TableCell sx={{ width: '40%' }}>{project.name}</TableCell>
+                <TableCell sx={{ width: '15%', textAlign: 'right' }}>{formatCurrency(project.hourlyRate)}</TableCell>
+                <TableCell sx={{ width: '15%', textAlign: 'right' }}>{formatDate(project.startDate)}</TableCell>
+                <TableCell sx={{ width: '15%', textAlign: 'right' }}>{formatDate(project.endDate)}</TableCell>
+                <TableCell sx={{ width: '15%', textAlign: 'right' }}>
+                  <IconButton onClick={() => handleEdit(project)} sx={{ color: 'white', '&:hover': { color: 'white' } }}>
                     <EditIcon />
                   </IconButton>
-                  <IconButton 
-                    size="small" 
-                    onClick={() => handleDelete(project.id)}
-                    sx={{ color: 'white' }}
-                  >
+                  <IconButton onClick={() => handleDelete(project.id)} sx={{ color: 'white', '&:hover': { color: 'white' } }}>
                     <DeleteIcon />
                   </IconButton>
-                </StyledTableCell>
+                </TableCell>
               </TableRow>
             ))}
-            {projects.length === 0 && (
-              <TableRow>
-                <StyledTableCell colSpan={5} align="center" sx={{ py: 3 }}>
-                  Geen projecten gevonden
-                </StyledTableCell>
-              </TableRow>
-            )}
           </TableBody>
         </Table>
       </TableContainer>
-    </Box>
+    </>
   );
 
   const renderMobileView = () => (
@@ -421,6 +439,7 @@ const Projects = () => {
               value={newProject.hourlyRate}
               onChange={(e) => setNewProject({ ...newProject, hourlyRate: Number(e.target.value) })}
               fullWidth
+              required
               sx={{
                 '& .MuiOutlinedInput-root': {
                   '& fieldset': { borderColor: 'white' },
@@ -508,7 +527,7 @@ const Projects = () => {
                     Uurtarief
                   </Typography>
                   <Typography variant="body1" color="white">
-                    €{project.hourlyRate}
+                    {formatCurrency(project.hourlyRate)}
                   </Typography>
                 </Grid>
                 <Grid item xs={6}>
@@ -516,7 +535,7 @@ const Projects = () => {
                     Startdatum
                   </Typography>
                   <Typography variant="body1" color="white">
-                    {new Date(project.startDate).toLocaleDateString('nl-NL')}
+                    {formatDate(project.startDate)}
                   </Typography>
                 </Grid>
                 <Grid item xs={6}>
@@ -524,24 +543,16 @@ const Projects = () => {
                     Einddatum
                   </Typography>
                   <Typography variant="body1" color="white">
-                    {new Date(project.endDate).toLocaleDateString('nl-NL')}
+                    {formatDate(project.endDate)}
                   </Typography>
                 </Grid>
               </Grid>
             </CardContent>
             <CardActions>
-              <IconButton 
-                size="small" 
-                onClick={() => handleEditClick(project)}
-                sx={{ color: 'white' }}
-              >
+              <IconButton onClick={() => handleEdit(project)} color="primary">
                 <EditIcon />
               </IconButton>
-              <IconButton 
-                size="small" 
-                onClick={() => handleDelete(project.id)}
-                sx={{ color: 'white' }}
-              >
+              <IconButton onClick={() => handleDelete(project.id)} color="error">
                 <DeleteIcon />
               </IconButton>
             </CardActions>
@@ -567,7 +578,7 @@ const Projects = () => {
                         Uurtarief
                       </Typography>
                       <Typography variant="body1" color="white">
-                        €{project.hourlyRate}
+                        {formatCurrency(project.hourlyRate)}
                       </Typography>
                     </Grid>
                     <Grid item xs={6}>
@@ -575,7 +586,7 @@ const Projects = () => {
                         Startdatum
                       </Typography>
                       <Typography variant="body1" color="white">
-                        {new Date(project.startDate).toLocaleDateString('nl-NL')}
+                        {formatDate(project.startDate)}
                       </Typography>
                     </Grid>
                     <Grid item xs={6}>
@@ -583,24 +594,16 @@ const Projects = () => {
                         Einddatum
                       </Typography>
                       <Typography variant="body1" color="white">
-                        {new Date(project.endDate).toLocaleDateString('nl-NL')}
+                        {formatDate(project.endDate)}
                       </Typography>
                     </Grid>
                   </Grid>
                 </CardContent>
                 <CardActions>
-                  <IconButton 
-                    size="small" 
-                    onClick={() => handleEditClick(project)}
-                    sx={{ color: 'white' }}
-                  >
+                  <IconButton onClick={() => handleEdit(project)} color="primary">
                     <EditIcon />
                   </IconButton>
-                  <IconButton 
-                    size="small" 
-                    onClick={() => handleDelete(project.id)}
-                    sx={{ color: 'white' }}
-                  >
+                  <IconButton onClick={() => handleDelete(project.id)} color="error">
                     <DeleteIcon />
                   </IconButton>
                 </CardActions>
@@ -627,9 +630,9 @@ const Projects = () => {
         </Button>
       </Box>
 
-      <ProjectsTable projects={activeProjects} title="Actieve Projecten" />
+      <ProjectTable projects={activeProjects} title="Actieve Projecten" />
       {expiredProjects.length > 0 && (
-        <ProjectsTable projects={expiredProjects} title="Verlopen Projecten" />
+        <ProjectTable projects={expiredProjects} title="Verlopen Projecten" />
       )}
     </StyledPaper>
   );
@@ -690,6 +693,7 @@ const Projects = () => {
               value={newProject.hourlyRate}
               onChange={(e) => setNewProject({ ...newProject, hourlyRate: Number(e.target.value) })}
               fullWidth
+              required
               sx={{
                 '& .MuiOutlinedInput-root': {
                   '& fieldset': { borderColor: 'white' },

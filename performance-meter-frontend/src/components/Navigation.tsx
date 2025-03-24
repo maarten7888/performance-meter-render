@@ -2,7 +2,6 @@ import React from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { AppBar, Toolbar, Button, Box, IconButton, Tooltip } from '@mui/material';
 import LogoutIcon from '@mui/icons-material/Logout';
-import PersonIcon from '@mui/icons-material/Person';
 import { useAuth } from '../contexts/AuthContext';
 
 const Navigation = () => {
@@ -61,17 +60,6 @@ const Navigation = () => {
           </Button>
           <Button
             color="inherit"
-            onClick={() => navigate('/consultant-profile')}
-            startIcon={<PersonIcon />}
-            sx={{
-              color: 'white',
-              bgcolor: isActive('/consultant-profile') ? 'rgba(255, 255, 255, 0.1)' : 'transparent',
-            }}
-          >
-            Profiel
-          </Button>
-          <Button
-            color="inherit"
             onClick={() => navigate('/management')}
             sx={{
               color: 'white',
@@ -83,7 +71,8 @@ const Navigation = () => {
         </Box>
         <Tooltip title="Uitloggen">
           <IconButton 
-            onClick={handleLogout} 
+            color="inherit" 
+            onClick={handleLogout}
             sx={{ 
               color: 'white',
               '&:hover': {
