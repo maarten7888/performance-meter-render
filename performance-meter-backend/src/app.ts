@@ -7,7 +7,7 @@ import authRoutes from './routes/authRoutes';
 import projectRoutes from './routes/projectRoutes';
 import timeEntryRoutes from './routes/timeEntryRoutes';
 import userRoutes from './routes/userRoutes';
-import consultantRoutes from './routes/consultants';
+import consultantRoutes from './routes/consultants.js';
 import path from 'path';
 
 // Debug logging voor imports
