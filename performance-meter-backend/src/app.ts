@@ -72,16 +72,33 @@ app.get('/api/test', (req, res) => {
   res.json({ message: 'API test endpoint werkt!' });
 });
 
-// API routes
-console.log('[App] Routes registreren...');
-console.log('[App] Base URL:', '/api');
+// API routes met extra logging
+app.use('/api/auth', (req, res, next) => {
+  console.log('[App] Auth route hit:', req.originalUrl);
+  next();
+}, authRoutes);
 
-// Routes
-app.use('/api/auth', authRoutes);
-app.use('/api/projects', projectRoutes);
-app.use('/api/time-entries', timeEntryRoutes);
-app.use('/api/users', userRoutes);
-app.use('/api/consultants', consultantRoutes);
+app.use('/api/projects', (req, res, next) => {
+  console.log('[App] Projects route hit:', req.originalUrl);
+  next();
+}, projectRoutes);
+
+app.use('/api/time-entries', (req, res, next) => {
+  console.log('[App] Time entries route hit:', req.originalUrl);
+  next();
+}, timeEntryRoutes);
+
+app.use('/api/users', (req, res, next) => {
+  console.log('[App] Users route hit:', req.originalUrl);
+  next();
+}, userRoutes);
+
+app.use('/api/consultants', (req, res, next) => {
+  console.log('[App] Consultants route hit:', req.originalUrl);
+  console.log('[App] Consultants path:', req.path);
+  console.log('[App] Consultants baseUrl:', req.baseUrl);
+  next();
+}, consultantRoutes);
 
 // Log alle geregistreerde routes
 console.log('[App] Alle routes geregistreerd');
