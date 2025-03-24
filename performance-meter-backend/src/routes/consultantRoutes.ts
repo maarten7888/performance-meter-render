@@ -11,6 +11,12 @@ router.use((req, res, next) => {
     next();
 });
 
+// Test endpoint zonder authenticatie
+router.get('/test', (req, res) => {
+    console.log('[Consultants Route] Test endpoint hit');
+    res.json({ message: 'Consultants test endpoint werkt!' });
+});
+
 // Alle routes vereisen authenticatie
 router.use(authenticateToken);
 
