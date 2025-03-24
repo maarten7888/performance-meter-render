@@ -4,10 +4,9 @@ import dotenv from 'dotenv';
 import { pool, query } from './config/database';
 import { authenticateToken, AuthRequest } from './middleware/auth';
 import authRoutes from './routes/authRoutes';
+import projectRoutes from './routes/projectRoutes';
 import timeEntryRoutes from './routes/timeEntryRoutes';
 import userRoutes from './routes/userRoutes';
-import consultantProfileRoutes from './routes/consultantProfileRoutes';
-import projectRoutes from './routes/projectRoutes';
 import path from 'path';
 
 // Debug logging voor imports
@@ -70,30 +69,11 @@ console.log('[App] Base URL:', '/api');
 console.log('[App] Routes registreren...');
 console.log('[App] Base URL:', '/api');
 
-// Project routes als eerste registreren
-console.log('[App] Project routes registreren op /api/projects...');
-app.use('/api/projects', projectRoutes);
-console.log('[App] Project routes geregistreerd');
-
-// Auth routes
-console.log('[App] Auth routes registreren op /api/auth...');
+// Routes
 app.use('/api/auth', authRoutes);
-console.log('[App] Auth routes geregistreerd');
-
-// Time entry routes
-console.log('[App] Time entry routes registreren op /api/time-entries...');
+app.use('/api/projects', projectRoutes);
 app.use('/api/time-entries', timeEntryRoutes);
-console.log('[App] Time entry routes geregistreerd');
-
-// User routes
-console.log('[App] User routes registreren op /api/users...');
 app.use('/api/users', userRoutes);
-console.log('[App] User routes geregistreerd');
-
-// Consultant profile routes
-console.log('[App] Consultant profile routes registreren op /api/consultant-profiles...');
-app.use('/api/consultant-profiles', consultantProfileRoutes);
-console.log('[App] Consultant profile routes geregistreerd');
 
 // Log alle geregistreerde routes
 console.log('[App] Alle routes geregistreerd');
