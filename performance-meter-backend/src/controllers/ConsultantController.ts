@@ -1,63 +1,137 @@
-import { Request, Response } from 'express';
+import { Response } from 'express';
 import { pool } from '../config/database';
+import { Consultant, ConsultantInput } from '../types/consultant';
+import { AuthRequest } from '../types/express';
 
 export class ConsultantController {
-    async getConsultants(req: Request, res: Response) {
+    async getConsultant(req: AuthRequest, res: Response) {
         try {
-            console.log('[Consultants] Fetching all consultants');
-            
-            const query = `
-                SELECT 
-                    c.*,
-                    u.name as user_name,
-                    u.email as user_email
-                FROM consultants c
-                JOIN users u ON c.user_id = u.id
-            `;
+            const { id } = req.params;
+            const [consultants] = await pool.query<Consultant[]>(
+                'SELECT * FROM consultants WHERE id = ?',
+                [id]
+            );
 
-            console.log('[Consultants] Executing query:', query);
-
-            const [rows] = await pool.query(query);
-            console.log('[Consultants] Query result:', rows);
-
-            res.json(rows);
-        } catch (error) {
-            console.error('[Consultants] Error fetching consultants:', error);
-            res.status(500).json({ message: 'Er is een fout opgetreden bij het ophalen van de consultants' });
-        }
-    }
-
-    async getConsultant(req: Request, res: Response) {
-        try {
-            const consultantId = req.params.id;
-            console.log('[Consultants] Fetching consultant with ID:', consultantId);
-            
-            const query = `
-                SELECT 
-                    c.*,
-                    u.name as user_name,
-                    u.email as user_email
-                FROM consultants c
-                JOIN users u ON c.user_id = u.id
-                WHERE c.id = ?
-            `;
-
-            console.log('[Consultants] Executing query:', query);
-            console.log('[Consultants] With parameters:', [consultantId]);
-
-            const [rows] = await pool.query(query, [consultantId]);
-            console.log('[Consultants] Query result:', rows);
-
-            if (!Array.isArray(rows) || rows.length === 0) {
-                console.log('[Consultants] No consultant found');
+            if (!consultants.length) {
                 return res.status(404).json({ message: 'Consultant niet gevonden' });
             }
 
-            console.log('[Consultants] Found consultant:', rows[0]);
-            res.json(rows[0]);
+            res.json(consultants[0]);
         } catch (error) {
-            console.error('[Consultants] Error fetching consultant:', error);
+            console.error('Error fetching consultant:', error);
             res.status(500).json({ message: 'Er is een fout opgetreden bij het ophalen van de consultant' });
+        }
+    }
+
+    async createConsultant(req: AuthRequest, res: Response) {
+        try {
+            const consultantData: ConsultantInput = req.body;
+
+            const [result] = await pool.query(
+                `INSERT INTO consultants (
+                    user_id, profile_image, role, start_date, bio,
+                    skill_moves, weak_foot, stat_punctuality, stat_teamwork,
+                    stat_focus, stat_skills, stat_hours, stat_communication
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+                [
+                    consultantData.user_id,
+                    consultantData.profile_image,
+                    consultantData.role,
+                    consultantData.start_date,
+                    consultantData.bio,
+                    consultantData.skill_moves,
+                    consultantData.weak_foot,
+                    consultantData.stat_punctuality,
+                    consultantData.stat_teamwork,
+                    consultantData.stat_focus,
+                    consultantData.stat_skills,
+                    consultantData.stat_hours,
+                    consultantData.stat_communication
+                ]
+            );
+
+            const [newConsultant] = await pool.query<Consultant[]>(
+                'SELECT * FROM consultants WHERE id = ?',
+                [(result as any).insertId]
+            );
+
+            res.status(201).json(newConsultant[0]);
+        } catch (error) {
+            console.error('Error creating consultant:', error);
+            res.status(500).json({ message: 'Er is een fout opgetreden bij het aanmaken van de consultant' });
+        }
+    }
+
+    async updateConsultant(req: AuthRequest, res: Response) {
+        try {
+            const { id } = req.params;
+            const consultantData: ConsultantInput = req.body;
+
+            const [result] = await pool.query(
+                `UPDATE consultants SET 
+                    profile_image = ?,
+                    role = ?,
+                    start_date = ?,
+                    bio = ?,
+                    skill_moves = ?,
+                    weak_foot = ?,
+                    stat_punctuality = ?,
+                    stat_teamwork = ?,
+                    stat_focus = ?,
+                    stat_skills = ?,
+                    stat_hours = ?,
+                    stat_communication = ?
+                WHERE id = ?`,
+                [
+                    consultantData.profile_image,
+                    consultantData.role,
+                    consultantData.start_date,
+                    consultantData.bio,
+                    consultantData.skill_moves,
+                    consultantData.weak_foot,
+                    consultantData.stat_punctuality,
+                    consultantData.stat_teamwork,
+                    consultantData.stat_focus,
+                    consultantData.stat_skills,
+                    consultantData.stat_hours,
+                    consultantData.stat_communication,
+                    id
+                ]
+            );
+
+            if ((result as any).affectedRows === 0) {
+                return res.status(404).json({ message: 'Consultant niet gevonden' });
+            }
+
+            const [updatedConsultant] = await pool.query<Consultant[]>(
+                'SELECT * FROM consultants WHERE id = ?',
+                [id]
+            );
+
+            res.json(updatedConsultant[0]);
+        } catch (error) {
+            console.error('Error updating consultant:', error);
+            res.status(500).json({ message: 'Er is een fout opgetreden bij het bijwerken van de consultant' });
+        }
+    }
+
+    async deleteConsultant(req: AuthRequest, res: Response) {
+        try {
+            const { id } = req.params;
+
+            const [result] = await pool.query(
+                'DELETE FROM consultants WHERE id = ?',
+                [id]
+            );
+
+            if ((result as any).affectedRows === 0) {
+                return res.status(404).json({ message: 'Consultant niet gevonden' });
+            }
+
+            res.json({ message: 'Consultant succesvol verwijderd' });
+        } catch (error) {
+            console.error('Error deleting consultant:', error);
+            res.status(500).json({ message: 'Er is een fout opgetreden bij het verwijderen van de consultant' });
         }
     }
 } 
