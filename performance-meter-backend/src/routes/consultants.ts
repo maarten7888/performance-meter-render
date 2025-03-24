@@ -1,68 +1,23 @@
-import express from 'express';
-import { pool } from '../config/database';
+import express, { Router } from 'express';
+import { ConsultantController } from '../controllers/ConsultantController';
 import { authenticateToken } from '../middleware/auth';
 
-const router = express.Router();
+const router: Router = express.Router();
+const consultantController = new ConsultantController();
 
-// GET /api/consultants
-router.get('/', authenticateToken, async (req, res) => {
-    try {
-        console.log('[Consultants] Fetching all consultants');
-        
-        const query = `
-            SELECT 
-                c.*,
-                u.name as user_name,
-                u.email as user_email
-            FROM consultants c
-            JOIN users u ON c.user_id = u.id
-        `;
-
-        console.log('[Consultants] Executing query:', query);
-
-        const [rows] = await pool.query(query);
-        console.log('[Consultants] Query result:', rows);
-
-        res.json(rows);
-    } catch (error) {
-        console.error('[Consultants] Error fetching consultants:', error);
-        res.status(500).json({ message: 'Er is een fout opgetreden bij het ophalen van de consultants' });
-    }
+// Debug middleware
+router.use((req, res, next) => {
+  console.log(`Consultant Route: ${req.method} ${req.path}`);
+  next();
 });
 
-// GET /api/consultants/:id
-router.get('/:id', authenticateToken, async (req, res) => {
-    try {
-        const consultantId = req.params.id;
-        console.log('[Consultants] Fetching consultant with ID:', consultantId);
-        
-        const query = `
-            SELECT 
-                c.*,
-                u.name as user_name,
-                u.email as user_email
-            FROM consultants c
-            JOIN users u ON c.user_id = u.id
-            WHERE c.id = ?
-        `;
+// Alle routes vereisen authenticatie
+router.use(authenticateToken as express.RequestHandler);
 
-        console.log('[Consultants] Executing query:', query);
-        console.log('[Consultants] With parameters:', [consultantId]);
+// Specifieke routes (met parameters) moeten VOOR algemene routes komen
+router.get('/:id', consultantController.getConsultant as express.RequestHandler);
 
-        const [rows] = await pool.query(query, [consultantId]);
-        console.log('[Consultants] Query result:', rows);
-
-        if (!Array.isArray(rows) || rows.length === 0) {
-            console.log('[Consultants] No consultant found');
-            return res.status(404).json({ message: 'Consultant niet gevonden' });
-        }
-
-        console.log('[Consultants] Found consultant:', rows[0]);
-        res.json(rows[0]);
-    } catch (error) {
-        console.error('[Consultants] Error fetching consultant:', error);
-        res.status(500).json({ message: 'Er is een fout opgetreden bij het ophalen van de consultant' });
-    }
-});
+// Algemene routes
+router.get('/', consultantController.getConsultants as express.RequestHandler);
 
 export default router; 
