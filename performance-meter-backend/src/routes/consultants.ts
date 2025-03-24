@@ -7,7 +7,8 @@ const consultantController = new ConsultantController();
 
 // Debug middleware
 router.use((req, res, next) => {
-  console.log(`Consultant Route: ${req.method} ${req.path}`);
+  console.log(`[Consultants Route] ${req.method} ${req.path}`);
+  console.log('[Consultants Route] Headers:', JSON.stringify(req.headers, null, 2));
   next();
 });
 
