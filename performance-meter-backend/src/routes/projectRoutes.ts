@@ -7,8 +7,15 @@ const projectController = new ProjectController();
 
 // Debug middleware
 router.use((req, res, next) => {
-  console.log(`Project Route: ${req.method} ${req.path}`);
+  console.log(`[Projects Route] ${req.method} ${req.path}`);
+  console.log('[Projects Route] Headers:', JSON.stringify(req.headers, null, 2));
   next();
+});
+
+// Test endpoint zonder authenticatie
+router.get('/test', (req, res) => {
+  console.log('[Projects Route] Test endpoint hit');
+  res.json({ message: 'Projects test endpoint werkt!' });
 });
 
 // Alle routes vereisen authenticatie
