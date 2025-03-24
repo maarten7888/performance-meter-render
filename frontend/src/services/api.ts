@@ -1,31 +1,31 @@
 import axios from 'axios';
-import { ConsultantProfileDB } from '../types/consultantProfile';
 
 const api = axios.create({
-    baseURL: process.env.REACT_APP_API_URL || 'https://performance-meter-render-6i1b.onrender.com',
+    baseURL: process.env.REACT_APP_API_URL || 'http://localhost:3001/api',
     headers: {
         'Content-Type': 'application/json'
     }
 });
 
-// Consultant Profile API calls
-export const getConsultantProfile = async (email: string): Promise<ConsultantProfileDB> => {
-    try {
-        const response = await api.get(`/api/consultant-profile/${email}`);
-        return response.data as ConsultantProfileDB;
-    } catch (error: any) {
-        if (error.response?.status === 404) {
-            throw new Error('Profiel niet gevonden');
-        }
-        throw new Error(error.message || 'Er is een fout opgetreden bij het ophalen van het profiel');
+// Add token to requests if it exists
+api.interceptors.request.use((config) => {
+    const token = localStorage.getItem('token');
+    if (token) {
+        config.headers.Authorization = `Bearer ${token}`;
     }
-};
+    return config;
+});
 
-export const updateConsultantProfile = async (email: string, data: ConsultantProfileDB): Promise<ConsultantProfileDB> => {
-    try {
-        const response = await api.put(`/api/consultant-profile/${email}`, data);
-        return response.data as ConsultantProfileDB;
-    } catch (error: any) {
-        throw new Error(error.message || 'Er is een fout opgetreden bij het bijwerken van het profiel');
+// Handle token expiration
+api.interceptors.response.use(
+    (response) => response,
+    (error) => {
+        if (error.response?.status === 401) {
+            localStorage.removeItem('token');
+            window.location.href = '/login';
+        }
+        return Promise.reject(error);
     }
-}; 
+);
+
+export default api; 
